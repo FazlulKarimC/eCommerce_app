@@ -1,0 +1,59 @@
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  image       String
+  inventory   Int
+  variants    String  // JSON: [{"type":"color","options":["red","blue"]},{"type":"size","options":["S","M","L"]}]
+  orders      Order[]
+  createdAt   DateTime @default(now())
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id               Int      @id @default(autoincrement())
+  orderNumber      String   @unique
+  status           String   // "approved", "declined", "failed"
+  createdAt        DateTime @default(now())
+  
+  // Customer relationship
+  customer         Customer @relation(fields: [customerId], references: [id])
+  customerId       Int
+  
+  // Payment info (last 4 digits only for display)
+  cardLast4        String
+  
+  // Product & order details
+  product          Product @relation(fields: [productId], references: [id])
+  productId        Int
+  productTitle     String  // Duplicate for easy access
+  selectedVariants String  // JSON string of selected variants
+  quantity         Int
+  subtotal         Float
+  total            Float
+}
