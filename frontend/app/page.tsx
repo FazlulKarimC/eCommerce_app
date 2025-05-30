@@ -9,11 +9,21 @@ import { ShoppingCart } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import api from '@/lib/axios';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 export default function LandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProductState] = useState<Product | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string>('');
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [quantity, setQuantity] = useState(1);
 
   const router = useRouter();
   const { setSelectedProduct } = useCart();
@@ -45,17 +55,31 @@ export default function LandingPage() {
     }
   };
 
-  const handleBuyNow = (product: Product) => {
-    const selection = {
-      productId: product.id,
-      productName: product.name,
-      selectedColor: product.variants.colors[0],
-      selectedSize: product.variants.sizes[0],
-      quantity: 1,
-      price: product.price,
-    };
+  const openDialog = (product: Product) => {
+    setSelectedProductState(product);
+    setSelectedColor(product.variants.colors[0] || '');
+    setSelectedSize(product.variants.sizes[0] || '');
+    setQuantity(1);
+    setDialogOpen(true);
+  };
 
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setSelectedProductState(null);
+  };
+
+  const handleDialogAddToCart = () => {
+    if (!selectedProduct) return;
+    const selection = {
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
+      selectedColor,
+      selectedSize,
+      quantity,
+      price: selectedProduct.price,
+    };
     setSelectedProduct(selection);
+    setDialogOpen(false);
     router.push('/checkout');
   };
 
@@ -81,9 +105,66 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+      {/* Dialog for selecting options */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Options</DialogTitle>
+            <DialogDescription>
+              Choose quantity, size, and color for your product.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedProduct && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="color">Color</Label>
+                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                  <SelectTrigger id="color">
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedProduct.variants.colors.map((color: string) => (
+                      <SelectItem key={color} value={color}>{color}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="size">Size</Label>
+                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <SelectTrigger id="size">
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedProduct.variants.sizes.map((size: string) => (
+                      <SelectItem key={size} value={size}>{size}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="quantity">Quantity</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min={1}
+                  max={selectedProduct.inventory}
+                  value={quantity}
+                  onChange={e => setQuantity(Math.max(1, Math.min(selectedProduct.inventory, Number(e.target.value))))}
+                  className="w-24"
+                />
+                <span className="ml-2 text-sm text-gray-500">(Max: {selectedProduct.inventory})</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={closeDialog} type="button">Cancel</Button>
+            <Button onClick={handleDialogAddToCart} type="button" disabled={!selectedColor || !selectedSize}>Add to Cart</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-bold mb-8 text-center">Our Products</h1>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product) => (
             <Card key={product.id} className="flex flex-col">
@@ -107,11 +188,11 @@ export default function LandingPage() {
                   <p className="text-sm text-gray-500">{product.inventory} in stock</p>
                 </div>
                 <Button
-                  onClick={() => handleBuyNow(product)}
+                  onClick={() => openDialog(product)}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2"
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
-                  Buy Now
+                  Add to Cart
                 </Button>
               </CardContent>
             </Card>

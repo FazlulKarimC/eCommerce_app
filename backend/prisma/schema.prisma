@@ -17,7 +17,6 @@ model Product {
   image       String
   inventory   Int
   variants    String  // JSON: [{"type":"color","options":["red","blue"]},{"type":"size","options":["S","M","L"]}]
-  orders      Order[]
   createdAt   DateTime @default(now())
 }
 
@@ -35,24 +34,21 @@ model Customer {
 }
 
 model Order {
-  id               Int      @id @default(autoincrement())
-  orderNumber      String   @unique
-  status           String   // "approved", "declined", "failed"
-  createdAt        DateTime @default(now())
-  
+  id             Int       @id @default(autoincrement())
+  orderNumber    String    @unique
+  status         String    // "approved", "declined", "failed"
+  createdAt      DateTime  @default(now())
+
   // Customer relationship
-  customer         Customer @relation(fields: [customerId], references: [id])
-  customerId       Int
-  
-  // Payment info (last 4 digits only for display)
-  cardNumber       String
-  
-  // Product & order details
-  product          Product @relation(fields: [productId], references: [id])
-  productId        Int
-  productTitle     String  // Duplicate for easy access
-  selectedVariants String  // JSON string of selected variants
-  quantity         Int
-  subtotal         Float
-  total            Float
+  customer       Customer  @relation(fields: [customerId], references: [id])
+  customerId     Int
+
+  cardNumber     String
+
+  // Products with selected variants (JSON array)
+  items          Json      // e.g. [{ Product, "selectedVariants": { "color": "red", "size": "M", "quantity": 2 }}]
+
+
+  subTotal       Float
+  total          Float
 }

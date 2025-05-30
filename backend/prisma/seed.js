@@ -1,4 +1,4 @@
-const { PrismaClient } = require('../src/generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -173,80 +173,68 @@ async function main() {
   // Create Sample Orders
   const orders = await Promise.all([
     // Approved Order
-    prisma.order.create({
+      await prisma.order.create({
       data: {
         orderNumber: 'ORD-2025-001',
         status: 'approved',
         customerId: customers[0].id,
         cardNumber: '1',
-        productId: products[0].id,
-        productTitle: products[0].title,
-        selectedVariants: JSON.stringify({
-          color: 'Black',
-          size: 'US 9'
-        }),
-        quantity: 1,
-        subtotal: 89.99,
-        total: 89.99
-      }
+        items: [
+          {
+            productId: products[0].id,
+            title: products[0].title,
+            description: products[0].description,
+            price: products[0].price,
+            image: products[0].image,
+            selectedVariants: {
+              color: 'Black',
+              size: 'US 9',
+            },
+            quantity: 1,
+          },
+          {
+            productId: products[1].id,
+            title: products[1].title,
+            description: products[1].description,
+            price: products[1].price,
+            image: products[1].image,
+            selectedVariants: {
+              color: 'Blue',
+              size: 'M',
+            },
+            quantity: 2,
+          },
+        ],
+        subTotal: products[0].price * 1 + products[1].price * 2,
+        total: products[0].price * 1 + products[1].price * 2,
+      },
     }),
 
-    // Declined Order
-    prisma.order.create({
+    await prisma.order.create({
       data: {
         orderNumber: 'ORD-2025-002',
-        status: 'declined',
-        customerId: customers[1].id,
-        cardNumber: '2',
-        productId: products[1].id,
-        productTitle: products[1].title,
-        selectedVariants: JSON.stringify({
-          color: 'Triple White',
-          size: 'US 8'
-        }),
-        quantity: 2,
-        subtotal: 259.98,
-        total: 259.98
-      }
-    }),
-
-    // Failed Order
-    prisma.order.create({
-      data: {
-        orderNumber: 'ORD-2025-003',
-        status: 'failed',
-        customerId: customers[2].id,
-        cardNumber: '3',
-        productId: products[2].id,
-        productTitle: products[2].title,
-        selectedVariants: JSON.stringify({
-          color: 'Core Black',
-          size: 'US 10.5'
-        }),
-        quantity: 1,
-        subtotal: 159.99,
-        total: 159.99
-      }
-    }),
-
-    // Another Approved Order
-    prisma.order.create({
-      data: {
-        orderNumber: 'ORD-2025-004',
         status: 'approved',
-        customerId: customers[3].id,
+        customerId: customers[0].id,
         cardNumber: '1',
-        productId: products[3].id,
-        productTitle: products[3].title,
-        selectedVariants: JSON.stringify({
-          color: 'Light Blue',
-          size: 'M'
-        }),
-        quantity: 1,
-        subtotal: 79.99,
-        total: 79.99
-      }
-    })
+        items: [
+          {
+            productId: products[1].id,
+            title: products[1].title,
+            description: products[1].description,
+            price: products[1].price,
+            image: products[1].image,
+            selectedVariants: {
+              color: 'Blue',
+              size: 'M',
+            },
+            quantity: 5,
+          },
+        ],
+        subTotal: products[0].price * 1 + products[1].price * 2,
+        total: products[0].price * 1 + products[1].price * 2,
+      },
+    }),
+
   ]);
 
   console.log('✅ Created orders');

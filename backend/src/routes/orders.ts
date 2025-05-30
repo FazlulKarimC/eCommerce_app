@@ -2,75 +2,102 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
-
 const prisma = new PrismaClient();
 const router = Router();
 
-const orderSchema = z.object({
-  customerId: z.number(),
-  cardNumber: z.string().min(1).max(1),
+// --- Zod schemas ---
+const itemSchema = z.object({
   productId: z.number(),
-  productTitle: z.string().min(1),
-  selectedVariants: z.any(), // Accept any, will be stringified
+  title: z.string().min(1),
+  description: z.string(),
+  price: z.number().positive(),
+  image: z.string().url(), // URL to the product image
+  selectedVariants: z.record(z.string(), z.string()),
   quantity: z.number().min(1),
-  subtotal: z.number(),
-  total: z.number(),
 });
 
-// POST /api/orders - Create order + simulate transaction
+
+
+const orderSchema = z.object({
+  customerId: z.number(),
+  cardNumber: z.string().min(1),
+  items: z.array(itemSchema).min(1),
+  subTotal: z.number().nonnegative(),
+  total: z.number().nonnegative(),
+});
+
+// --- POST /api/orders ---
+// Create a new order and simulate a transaction
 router.post('/', async (req, res) => {
-  const parse = orderSchema.safeParse(req.body);
-  if (!parse.success) {
-    res.status(400).json({ error: 'Invalid input', details: parse.error.errors });
+  const parsed = orderSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid input', details: parsed.error.errors });
     return;
   }
+
+  const { customerId, cardNumber, items, subTotal, total } = parsed.data;
+
+  // Simple status simulation
+  const statusOptions = ['approved', 'declined', 'failed'] as const;
+  const lastDigit = Number(cardNumber.slice(-1));
+  const status = statusOptions[lastDigit % statusOptions.length];
+
+  if (status !== "approved") {
+    // If not approved, simulate a failed transaction
+    res.status(400).json({ error: `Transaction ${status}` });
+    return;
+  }
+
+  // Unique order number
+  const orderNumber = `ORD-${new Date().getFullYear()}-${Math.floor(Math.random() * 1_000_000)}`;
+
   try {
-    const {
-      customerId,
-      cardNumber,
-      productId,
-      productTitle,
-      selectedVariants,
-      quantity,
-      subtotal,
-      total,
-    } = parse.data;
-    const statusOptions = ['approved', 'declined', 'failed'];
-    const status = statusOptions[Number(cardNumber.slice(-1)) % statusOptions.length];
-    const orderNumber = `ORD-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000000)}`;
     const order = await prisma.order.create({
       data: {
         orderNumber,
         status,
         customerId,
         cardNumber,
-        productId,
-        productTitle,
-        selectedVariants: JSON.stringify(selectedVariants),
-        quantity,
-        subtotal,
+        items,    // JSON column — Prisma will marshal it
+        subTotal,
         total,
       },
     });
+
     res.status(201).json(order);
-  } catch (error) {
-    res.status(400).json({ error: 'Failed to create order' });
+    return;
+  } catch (err) {
+    console.error('Error creating order:', err);
+    res.status(500).json({ error: 'Failed to create order' });
+    return;
   }
 });
 
-// GET /api/orders/:orderNumber - Get order for thank-you page
+// --- GET /api/orders/:orderNumber ---
+// Fetch an order for a thank-you page
 router.get('/:orderNumber', async (req: Request<{ orderNumber: string }>, res: Response) => {
-  try {
     const { orderNumber } = req.params;
-    const order = await prisma.order.findUnique({ where: { orderNumber } });
-    if (!order) {
-      res.status(404).json({ error: 'Order not found' });
+
+    try {
+      const order = await prisma.order.findUnique({
+        where: { orderNumber },
+        include: {
+          customer: true,  // if you want customer details
+        },
+      });
+
+      if (!order) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+      res.json(order);
+      return;
+    } catch (err) {
+      console.error('Error fetching order:', err);
+      res.status(500).json({ error: 'Failed to fetch order' });
       return;
     }
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch order' });
   }
-});
+);
 
 export default router;

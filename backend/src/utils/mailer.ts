@@ -38,14 +38,25 @@ export async function sendMail(to: string, subject: string, html: string, text: 
 /**
  * Send a test email to verify the mailer configuration.
  */
-export async function sendTestEmail() {
-    const to = "fazlul0127@gmail.com";
-    const subject = 'Test Email from Your Store';
-    const html = '<p>This is a test email sent from Your Store.</p>';
-    const text = 'This is a test email sent from Your Store.';
-    return sendMail(to, subject, html, text);
+export async function sendApprovedEmail(to: string) {
+  const subject = 'Your Order is Confirmed ✅';
+  const html = '<p>Thank you! Your order has been approved and is now being processed.</p>';
+  const text = 'Thank you! Your order has been approved and is now being processed.';
+  return sendMail(to, subject, html, text);
 }
 
-sendTestEmail()
-  .then(() => console.log('Test email sent successfully'))
-  .catch((error) => console.error('Error sending test email:', error));
+export async function sendFailedEmail(to: string) {
+  const subject = 'Order Payment Failed ❌';
+  const html = '<p>Unfortunately, your payment did not go through. Please try again or use a different method.</p>';
+  const text = 'Unfortunately, your payment did not go through. Please try again or use a different method.';
+  return sendMail(to, subject, html, text);
+}
+
+export async function sendDeclinedEmail(to: string) {
+  const subject = 'Order Declined 🚫';
+  const html = '<p>We couldn’t approve your order. Please contact support if you believe this is a mistake.</p>';
+  const text = 'We couldn’t approve your order. Please contact support if you believe this is a mistake.';
+  return sendMail(to, subject, html, text);
+}
+
+
