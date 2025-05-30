@@ -1,7 +1,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -46,7 +45,7 @@ model Order {
   customerId       Int
   
   // Payment info (last 4 digits only for display)
-  cardLast4        String
+  cardNumber       String
   
   // Product & order details
   product          Product @relation(fields: [productId], references: [id])

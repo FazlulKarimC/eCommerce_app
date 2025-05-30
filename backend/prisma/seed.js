@@ -79,7 +79,7 @@ async function main() {
         title: 'Classic Denim Jacket',
         description: 'Timeless denim jacket made from premium cotton. Perfect for layering with vintage-inspired styling.',
         price: 79.99,
-        image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=500&h=500&fit=crop',
+        image: 'https://images.unsplash.com/photo-1614699745279-2c61bd9d46b5?w=500&h=500&fit=crop',
         inventory: 42,
         variants: JSON.stringify([
           {
@@ -178,7 +178,7 @@ async function main() {
         orderNumber: 'ORD-2025-001',
         status: 'approved',
         customerId: customers[0].id,
-        cardLast4: '1234',
+        cardNumber: '1',
         productId: products[0].id,
         productTitle: products[0].title,
         selectedVariants: JSON.stringify({
@@ -197,7 +197,7 @@ async function main() {
         orderNumber: 'ORD-2025-002',
         status: 'declined',
         customerId: customers[1].id,
-        cardLast4: '5678',
+        cardNumber: '2',
         productId: products[1].id,
         productTitle: products[1].title,
         selectedVariants: JSON.stringify({
@@ -216,7 +216,7 @@ async function main() {
         orderNumber: 'ORD-2025-003',
         status: 'failed',
         customerId: customers[2].id,
-        cardLast4: '9012',
+        cardNumber: '3',
         productId: products[2].id,
         productTitle: products[2].title,
         selectedVariants: JSON.stringify({
@@ -235,7 +235,7 @@ async function main() {
         orderNumber: 'ORD-2025-004',
         status: 'approved',
         customerId: customers[3].id,
-        cardLast4: '3456',
+        cardNumber: '1',
         productId: products[3].id,
         productTitle: products[3].title,
         selectedVariants: JSON.stringify({
