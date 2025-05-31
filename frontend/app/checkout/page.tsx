@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { LoadingButton } from '@/components/ui/loading-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ArrowLeft, CreditCard, Loader2, ShoppingCart } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
@@ -149,7 +148,7 @@ export default function CheckoutPage() {
       // Log the transformed items for debugging
       console.log('Transformed items:', transformedItems);
 
-      // Step 2: Create Order (only if customer creation succeeds)
+      // Create Order (only if customer creation succeeds)
       const orderResponse = await api.post('/api/orders', {
         customerId: customerId,
         items: transformedItems,
@@ -187,7 +186,7 @@ export default function CheckoutPage() {
       setIsProcessingOrder(false);
       console.error('Checkout error:', error);
 
-      // Log detailed error information for easier debugging
+      // Log detailed error information for debugging
       if (error.response) {
         console.error('API Error Response:', {
           status: error.response.status,

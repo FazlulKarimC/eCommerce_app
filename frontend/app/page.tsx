@@ -19,7 +19,7 @@ export default function LandingPage() {
   const [error, setError] = useState('');
 
   const router = useRouter();
-  const { setSelectedProduct, addToCart, getCartItemCount } = useCart();
+  const { addToCart, getCartItemCount } = useCart();
   const { loadingStates, navigateWithLoading } = useNavigationLoading();
   const [activeProduct, setActiveProduct] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('');

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Product, ProductSelection, CartItem } from './types';
 
 interface CartContextType {
-  // Original functionality (kept for backward compatibility)
+  // Original functionality (direct checkout) - kept for backward compatibility
   selectedProduct: ProductSelection | null;
   setSelectedProduct: (product: ProductSelection) => void;
 
@@ -20,7 +20,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Helper to generate a unique ID for cart items
+// Helper to generate a unique ID for cart items to uniquely identify same product with different selections
 const generateCartItemId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
@@ -60,12 +60,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const newItem: CartItem = {
       id: generateCartItemId(),
       productId: product.id,
-      productName: product.name || '', // Ensure name is never undefined
+      productName: product.name || '',
       selectedColor,
       selectedSize,
       quantity,
       price: product.price,
-      image: product.image || '', // Ensure image is never undefined
+      image: product.image || '',
       addedAt: new Date().toISOString()
     };
 

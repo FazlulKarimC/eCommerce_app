@@ -54,10 +54,8 @@ export default function ThankYouPage({ params }: ThankYouPageProps) {
     try {
       setLoading(true);
 
-      // Use the external API endpoint
-      const response = await api.get(`https://ecommerce-app-backend-rq2y.onrender.com/api/orders/${orderNumber}`);
+      const response = await api.get(`/api/orders/${orderNumber}`);
 
-      // API returns the order directly, not wrapped in a success/data object
       setOrder(response.data);
 
     } catch (err: any) {
