@@ -36,7 +36,52 @@ export interface ProductSelection {
   price: number;
 }
 
+export interface CartItem extends ProductSelection {
+  id: string; // unique identifier for cart item
+  image: string; // product image
+  addedAt: string; // timestamp when added to cart
+}
+
+export interface OrderItem {
+  image: string;
+  price: number;
+  title: string;
+  quantity: number;
+  productId: number;
+  description: string;
+  selectedVariants: {
+    size: string;
+    color: string;
+  };
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  createdAt: string;
+}
+
 export interface Order {
+  id: number;
+  orderNumber: string;
+  status: 'approved' | 'declined' | 'error';
+  createdAt: string;
+  customerId: number;
+  cardNumber: string;
+  items: OrderItem[];
+  subTotal: number;
+  total: number;
+  customer?: Customer;
+}
+
+// Legacy Order interface for backward compatibility
+export interface LegacyOrder {
   id: string;
   orderNumber: string;
   customerInfo: CustomerInfo;

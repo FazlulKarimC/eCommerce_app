@@ -11,7 +11,7 @@ export const customerInfoSchema = z.object({
 });
 
 export const paymentInfoSchema = z.object({
-  cardNumber: z.string().regex(/^\d{16}$/, 'Card number must be 16 digits'),
+  cardNumber: z.string().regex(/^\d{1}$/, 'Card number must be 1 digit'),
   expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Please enter MM/YY format').refine((date) => {
     const [month, year] = date.split('/');
     const expiry = new Date(2000 + parseInt(year), parseInt(month) - 1);
