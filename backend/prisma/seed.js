@@ -112,7 +112,84 @@ async function main() {
           }
         ])
       }
-    })
+    }),
+
+    prisma.product.create({
+    data: {
+      title: 'Puma RS-X Reinvent',
+      description: 'Chunky sneakers with bold colors and retro-futuristic design. Features breathable mesh and cushioned soles.',
+      price: 109.99,
+      image: 'https://images.unsplash.com/photo-1577982787983-e07c6730f2d3?w=500&h=500&fit=crop',
+      inventory: 42,
+      variants: JSON.stringify([
+        {
+          type: 'color',
+          options: ['White/Peach', 'Black/Gray', 'Blue/Green']
+        },
+        {
+          type: 'size',
+          options: ['US 6', 'US 7', 'US 8', 'US 9', 'US 10']
+        }
+      ])
+    }
+  }),
+
+  prisma.product.create({
+    data: {
+      title: 'Slim Fit Oxford Shirt',
+      description: 'Versatile and stylish shirt made from breathable cotton. Perfect for both casual and formal occasions.',
+      price: 49.99,
+      image: 'https://images.unsplash.com/photo-1717127354833-e4d10625d3e7?w=500&h=500&fit=crop',
+      inventory: 70,
+      variants: JSON.stringify([
+        {
+          type: 'color',
+          options: ['White', 'Light Blue', 'Navy']
+        },
+        {
+          type: 'size',
+          options: ['S', 'M', 'L', 'XL', 'XXL']
+        }
+      ])
+    }
+  }),
+
+  prisma.product.create({
+    data: {
+      title: 'Smart Fitness Tracker Band',
+      description: 'Lightweight fitness tracker with heart rate monitoring, step tracking, and sleep analysis. Compatible with iOS and Android.',
+      price: 59.99,
+      image: 'https://images.unsplash.com/photo-1637160151663-a410315e4e75?w=500&h=500&fit=crop',
+      inventory: 90,
+      variants: JSON.stringify([
+        {
+          type: 'color',
+          options: ['Black', 'Blue', 'Pink']
+        },
+        {
+          type: 'size',
+          options: ['S', 'M', 'L', 'XL']
+        }
+      ])
+    }
+  }),
+
+  prisma.product.create({
+    data: {
+      title: 'Leather Wallet with RFID Protection',
+      description: 'Premium genuine leather wallet with RFID blocking technology and multiple card slots for everyday use.',
+      price: 39.99,
+      image: 'https://images.unsplash.com/photo-1560472355-536de3962603?w=500&h=500&fit=crop',
+      inventory: 100,
+      variants: JSON.stringify([
+        {
+          type: 'color',
+          options: ['Brown', 'Black', 'Tan']
+        }
+      ])
+    }
+  })
+
   ]);
 
   console.log('✅ Created products');

@@ -35,9 +35,7 @@ export async function sendMail(to: string, subject: string, html: string, text: 
   }
 }
 
-/**
- * Send a test email to verify the mailer configuration.
- */
+
 export async function sendApprovedEmail(to: string) {
   const subject = 'Your Order is Confirmed ✅';
   const html = '<p>Thank you! Your order has been approved and is now being processed.</p>';

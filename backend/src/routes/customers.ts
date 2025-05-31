@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
     return;
   }
   try {
-    // Try to update if email exists, else create
+    // Update if email exists, else create
     const existing = await prisma.customer.findUnique({ where: { email: parse.data.email } });
     let customer;
     if (existing) {
