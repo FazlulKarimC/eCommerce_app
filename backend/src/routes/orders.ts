@@ -38,9 +38,17 @@ router.post('/', async (req, res) => {
   const { customerId, cardNumber, items, subTotal, total } = parsed.data;
 
   // Simple status simulation
-  const statusOptions = ['approved', 'declined', 'failed'] as const;
+
   const lastDigit = Number(cardNumber.slice(-1));
-  const status = statusOptions[lastDigit % statusOptions.length];
+  let status = ""
+
+  if (lastDigit === 1) {
+    status = 'approved';
+  } else if (lastDigit === 2) {
+    status = 'declined'; 
+  } else if (lastDigit % 2 === 3) {
+    status = 'failed'; 
+  }
 
   if (status !== "approved") {
     // If not approved, simulate a failed transaction
@@ -64,8 +72,10 @@ router.post('/', async (req, res) => {
       },
     });
 
-    res.status(201).json(order);
+    res.status(201).json(order.orderNumber);
+    console.log('Order created:', order);
     return;
+    
   } catch (err) {
     console.error('Error creating order:', err);
     res.status(500).json({ error: 'Failed to create order' });
