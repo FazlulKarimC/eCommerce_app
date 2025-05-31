@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
     status = 'approved';
   } else if (lastDigit === 2) {
     status = 'declined'; 
-  } else if (lastDigit % 2 === 3) {
+  } else if (lastDigit <= 0 || lastDigit > 2) {
     status = 'failed'; 
   }
 
@@ -72,10 +72,10 @@ router.post('/', async (req, res) => {
       },
     });
 
-    res.status(201).json(order.orderNumber);
-    console.log('Order created:', order);
+    res.status(201).json({ orderNumber: order.orderNumber});
+    console.log('Order created:', order.orderNumber);
     return;
-    
+
   } catch (err) {
     console.error('Error creating order:', err);
     res.status(500).json({ error: 'Failed to create order' });
