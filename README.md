@@ -1,4 +1,4 @@
-# 🛒 Ecommerce App [![Next.js](https://img.shields.io/badge/Next.js-13+-000000.svg?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/) [![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/) [![Prisma](https://img.shields.io/badge/Prisma-ORM-2B3A67.svg?style=flat&logo=prisma&logoColor=white)](https://www.prisma.io/)
+# 🛒 Ecommerce App [![Next.js](https://img.shields.io/badge/Next.js-15+-000000.svg?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/) [![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/) [![Prisma](https://img.shields.io/badge/Prisma-ORM-2B3A67.svg?style=flat&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
 Welcome to a sleek, full-stack **Ecommerce Application** built with a modern tech stack! Dive into a seamless shopping experience with a polished Next.js frontend and a powerful Node.js/Express backend, all tied together with a PostgreSQL database managed via Prisma ORM.
 
