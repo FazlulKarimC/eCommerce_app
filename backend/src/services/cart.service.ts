@@ -5,9 +5,28 @@ export class CartService {
     /**
      * Get or create cart for customer or session
      */
-    async getOrCreateCart(customerId?: string, sessionId?: string) {
-        if (!customerId && !sessionId) {
-            throw new Error('Either customerId or sessionId is required');
+    /**
+     * Get or create cart for user (via userId) or session
+     */
+    async getOrCreateCart(userId?: string, sessionId?: string) {
+        if (!userId && !sessionId) {
+            throw new Error('Either userId or sessionId is required');
+        }
+
+        let customerId: string | undefined;
+
+        // If userId provided, resolve/create Customer
+        if (userId) {
+            let customer = await prisma.customer.findUnique({
+                where: { userId },
+            });
+
+            if (!customer) {
+                customer = await prisma.customer.create({
+                    data: { userId },
+                });
+            }
+            customerId = customer.id;
         }
 
         let cart = await prisma.cart.findFirst({
@@ -21,7 +40,11 @@ export class CartService {
             cart = await prisma.cart.create({
                 data: {
                     customerId,
-                    sessionId,
+                    sessionId: customerId ? undefined : sessionId, // Only set sessionId if no customer (or if allowed to have both?)
+                    // Schema allows both? Cart.customerId unique, Cart.sessionId unique.
+                    // A cart usually belongs to EITHER customer OR session.
+                    // But if we merge, we might clear sessionId.
+                    // For now, if customerId is present, we create a customer cart.
                     expiresAt: sessionId ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null,
                 },
                 include: this.getCartInclude(),
@@ -156,15 +179,22 @@ export class CartService {
     /**
      * Merge guest cart into customer cart on login
      */
-    async mergeCart(sessionId: string, customerId: string) {
+    async mergeCart(sessionId: string, userId: string) {
         const guestCart = await prisma.cart.findUnique({
             where: { sessionId },
             include: { items: true },
         });
 
         if (!guestCart || guestCart.items.length === 0) {
-            return this.getOrCreateCart(customerId);
+            return this.getOrCreateCart(userId);
         }
+
+        // Resolve Customer
+        let customer = await prisma.customer.findUnique({ where: { userId } });
+        if (!customer) {
+            customer = await prisma.customer.create({ data: { userId } });
+        }
+        const customerId = customer.id;
 
         // Get or create customer cart
         let customerCart = await prisma.cart.findUnique({

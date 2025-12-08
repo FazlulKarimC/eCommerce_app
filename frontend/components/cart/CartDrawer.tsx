@@ -21,7 +21,7 @@ export function CartDrawer() {
             />
 
             {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--brutal-white)] z-50 flex flex-col border-l-4 border-[var(--brutal-black)]">
+            <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--brutal-white)] z-50 flex flex-col border-l-[var(--border-width-thick)] border-[var(--brutal-black)] shadow-[var(--shadow-xl)]">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b-4 border-[var(--brutal-black)]">
                     <h2 className="text-xl font-black uppercase">Your Cart</h2>

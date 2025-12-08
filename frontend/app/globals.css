@@ -49,8 +49,8 @@
   --border-color: var(--brutal-black);
 
   /* Shadows - Hard, no blur */
-  --shadow-sm: 3px 3px 0 var(--brutal-black);
-  --shadow-md: 5px 5px 0 var(--brutal-black);
+  --shadow-sm: 2px 2px 0 var(--brutal-black);
+  --shadow-md: 4px 4px 0 var(--brutal-black);
   --shadow-lg: 8px 8px 0 var(--brutal-black);
   --shadow-xl: 12px 12px 0 var(--brutal-black);
 

@@ -46,10 +46,10 @@ export function Header() {
     return (
         <header
             className={cn(
-                'fixed top-0 left-0 right-0 z-50 transition-all duration-200',
+                'fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b-[var(--border-width)]',
                 isScrolled
-                    ? 'bg-[var(--brutal-white)] shadow-[0_3px_0_var(--brutal-black)]'
-                    : 'bg-transparent'
+                    ? 'bg-[var(--brutal-white)] border-[var(--brutal-black)] shadow-[var(--shadow-sm)]'
+                    : 'bg-transparent border-transparent'
             )}
         >
             <div className="container">

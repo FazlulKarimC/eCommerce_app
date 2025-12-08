@@ -42,12 +42,13 @@ export function Footer() {
     return (
         <footer className="bg-[var(--brutal-black)] text-[var(--brutal-white)] mt-20">
             {/* Newsletter */}
-            <div className="border-b border-[var(--brutal-gray-700)]">
+            {/* Newsletter */}
+            <div className="bg-[var(--brutal-yellow)] text-[var(--brutal-black)] border-t-[var(--border-width-thick)] border-b-[var(--border-width-thick)] border-[var(--brutal-black)]">
                 <div className="container py-12">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div>
                             <h3 className="text-2xl font-black">JOIN THE MOVEMENT</h3>
-                            <p className="text-[var(--brutal-gray-400)] mt-1">
+                            <p className="mt-1 font-medium">
                                 Get 10% off your first order + exclusive drops
                             </p>
                         </div>
@@ -55,11 +56,11 @@ export function Footer() {
                             <input
                                 type="email"
                                 placeholder="Your email"
-                                className="brutal-input bg-[var(--brutal-gray-800)] border-[var(--brutal-gray-600)] text-white w-full md:w-80"
+                                className="brutal-input bg-[var(--brutal-white)] border-[var(--brutal-black)] text-[var(--brutal-black)] w-full md:w-80 placeholder:text-[var(--brutal-gray-500)]"
                             />
                             <button
                                 type="submit"
-                                className="brutal-btn brutal-btn-primary whitespace-nowrap"
+                                className="brutal-btn brutal-btn-dark whitespace-nowrap"
                             >
                                 Subscribe
                             </button>

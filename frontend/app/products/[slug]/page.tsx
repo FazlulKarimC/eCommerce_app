@@ -261,7 +261,7 @@ export default function ProductDetailPage() {
 
                         {/* Options */}
                         {product.options.map((option) => (
-                            <div key={option.id} className="mt-6">
+                            <div key={option.id} className="mt-8">
                                 <label className="font-bold uppercase tracking-wider text-sm">
                                     {option.name}
                                 </label>
@@ -288,7 +288,7 @@ export default function ProductDetailPage() {
                         ))}
 
                         {/* Quantity */}
-                        <div className="mt-6">
+                        <div className="mt-8">
                             <label className="font-bold uppercase tracking-wider text-sm">
                                 Quantity
                             </label>
