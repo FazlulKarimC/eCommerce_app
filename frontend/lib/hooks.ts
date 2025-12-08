@@ -77,11 +77,11 @@ interface CollectionsResponse {
 }
 
 export function useCollections() {
-    return useQuery<CollectionsResponse>({
+    return useQuery<Collection[]>({
         queryKey: ['collections'],
         queryFn: async () => {
             const response = await api.get('/collections');
-            return response.data;
+            return response.data.collections || response.data;
         },
     });
 }
@@ -176,7 +176,8 @@ interface OrdersResponse {
     pagination: Pagination;
 }
 
-export function useMyOrders(page = 1, limit = 10) {
+export function useMyOrders(params: { page?: number; limit?: number } = {}) {
+    const { page = 1, limit = 10 } = params;
     return useQuery<OrdersResponse>({
         queryKey: ['my-orders', page, limit],
         queryFn: async () => {
@@ -227,11 +228,11 @@ interface WishlistItem {
 }
 
 export function useWishlist() {
-    return useQuery<{ items: WishlistItem[] }>({
+    return useQuery<WishlistItem[]>({
         queryKey: ['wishlist'],
         queryFn: async () => {
             const response = await api.get('/wishlist');
-            return response.data;
+            return response.data.items || response.data;
         },
     });
 }
