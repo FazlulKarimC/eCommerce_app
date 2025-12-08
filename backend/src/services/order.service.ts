@@ -1,0 +1,408 @@
+import { prisma } from '../config/database';
+import { CheckoutInput } from '../validators/order.validator';
+import { generateOrderNumber } from '../utils/helpers';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
+
+export class OrderService {
+    /**
+     * Process checkout and create order
+     */
+    async checkout(cartId: string, input: CheckoutInput, customerId?: string) {
+        // Get cart with items
+        const cart = await prisma.cart.findUnique({
+            where: { id: cartId },
+            include: {
+                items: {
+                    include: {
+                        variant: {
+                            include: {
+                                product: {
+                                    include: { images: { take: 1 } },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!cart || cart.items.length === 0) {
+            throw new Error('Cart is empty');
+        }
+
+        // Validate inventory
+        for (const item of cart.items) {
+            if (item.variant.inventoryQty < item.quantity) {
+                throw new Error(`Insufficient inventory for ${item.variant.product.title}`);
+            }
+        }
+
+        // Calculate totals
+        const subtotal = cart.items.reduce(
+            (sum, item) => sum + parseFloat(item.variant.price.toString()) * item.quantity,
+            0
+        );
+
+        // Apply discount if provided
+        let discount = 0;
+        let discountCodeId: string | null = null;
+
+        if (input.discountCode) {
+            const discountResult = await this.applyDiscount(input.discountCode, subtotal);
+            discount = discountResult.discount;
+            discountCodeId = discountResult.discountCodeId;
+        }
+
+        // Get store settings for shipping and tax
+        const settings = await prisma.storeSettings.findUnique({
+            where: { id: 'default' },
+        });
+
+        const shippingCost = settings?.shippingRate ? parseFloat(settings.shippingRate.toString()) : 0;
+        const freeShippingThreshold = settings?.freeShippingThreshold
+            ? parseFloat(settings.freeShippingThreshold.toString())
+            : null;
+
+        const finalShipping = (freeShippingThreshold && subtotal >= freeShippingThreshold) ? 0 : shippingCost;
+
+        const taxRate = settings?.defaultTaxRate ? parseFloat(settings.defaultTaxRate.toString()) : 0;
+        const tax = (subtotal - discount) * (taxRate / 100);
+        const total = subtotal - discount + finalShipping + tax;
+
+        // Process mock payment
+        const paymentResult = await this.processPayment(input.paymentInfo, total);
+
+        if (!paymentResult.success) {
+            throw new Error(paymentResult.error || 'Payment failed');
+        }
+
+        // Create order in transaction
+        const order = await prisma.$transaction(async (tx) => {
+            // Create address if customer wants to save it
+            let shippingAddressId: string | null = null;
+
+            if (customerId && input.saveAddress) {
+                const customer = await tx.customer.findUnique({ where: { id: customerId } });
+                if (customer) {
+                    const address = await tx.address.create({
+                        data: {
+                            customerId: customer.id,
+                            ...input.shippingAddress,
+                            isDefault: false,
+                        },
+                    });
+                    shippingAddressId = address.id;
+                }
+            }
+
+            // Create order
+            const order = await tx.order.create({
+                data: {
+                    orderNumber: generateOrderNumber(),
+                    customerId,
+                    email: input.email,
+                    phone: input.phone,
+                    status: OrderStatus.PAID,
+                    financialStatus: 'paid',
+                    subtotal,
+                    discount,
+                    shippingCost: finalShipping,
+                    tax,
+                    total,
+                    shippingAddressId,
+                    discountCodeId,
+                    customerNotes: input.customerNotes,
+                },
+            });
+
+            // Create order items
+            for (const item of cart.items) {
+                await tx.orderItem.create({
+                    data: {
+                        orderId: order.id,
+                        variantId: item.variantId,
+                        productTitle: item.variant.product.title,
+                        variantTitle: item.variant.title,
+                        sku: item.variant.sku,
+                        quantity: item.quantity,
+                        price: item.variant.price,
+                        originalPrice: item.variant.compareAtPrice || item.variant.price,
+                        imageUrl: item.variant.product.images[0]?.url,
+                    },
+                });
+
+                // Reduce inventory
+                await tx.productVariant.update({
+                    where: { id: item.variantId },
+                    data: { inventoryQty: { decrement: item.quantity } },
+                });
+            }
+
+            // Create payment record
+            await tx.payment.create({
+                data: {
+                    orderId: order.id,
+                    amount: total,
+                    status: PaymentStatus.COMPLETED,
+                    provider: 'mock',
+                    transactionId: paymentResult.transactionId,
+                    cardLast4: input.paymentInfo.cardNumber.slice(-4),
+                    cardBrand: this.detectCardBrand(input.paymentInfo.cardNumber),
+                },
+            });
+
+            // Increment discount usage if used
+            if (discountCodeId) {
+                await tx.discountCode.update({
+                    where: { id: discountCodeId },
+                    data: { usedCount: { increment: 1 } },
+                });
+            }
+
+            // Clear cart
+            await tx.cartItem.deleteMany({ where: { cartId } });
+
+            return order;
+        });
+
+        // Log mock email
+        console.log(`[MOCK EMAIL] Order confirmation sent to ${input.email} for order ${order.orderNumber}`);
+
+        return this.findById(order.id);
+    }
+
+    /**
+     * Apply discount code
+     */
+    async applyDiscount(code: string, subtotal: number) {
+        const discountCode = await prisma.discountCode.findUnique({
+            where: { code: code.toUpperCase() },
+        });
+
+        if (!discountCode) {
+            throw new Error('Invalid discount code');
+        }
+
+        if (!discountCode.active) {
+            throw new Error('Discount code is no longer active');
+        }
+
+        const now = new Date();
+        if (discountCode.startsAt && discountCode.startsAt > now) {
+            throw new Error('Discount code is not yet active');
+        }
+
+        if (discountCode.endsAt && discountCode.endsAt < now) {
+            throw new Error('Discount code has expired');
+        }
+
+        if (discountCode.maxUses && discountCode.usedCount >= discountCode.maxUses) {
+            throw new Error('Discount code has reached its usage limit');
+        }
+
+        if (discountCode.minOrderAmount && subtotal < parseFloat(discountCode.minOrderAmount.toString())) {
+            throw new Error(`Minimum order amount of $${discountCode.minOrderAmount} required`);
+        }
+
+        let discount = 0;
+        const value = parseFloat(discountCode.value.toString());
+
+        switch (discountCode.type) {
+            case 'PERCENTAGE':
+                discount = subtotal * (value / 100);
+                break;
+            case 'FIXED_AMOUNT':
+                discount = Math.min(value, subtotal);
+                break;
+            case 'FREE_SHIPPING':
+                // Will be handled in checkout
+                discount = 0;
+                break;
+        }
+
+        return {
+            discount,
+            discountCodeId: discountCode.id,
+            type: discountCode.type,
+        };
+    }
+
+    /**
+     * Find order by ID
+     */
+    async findById(id: string) {
+        const order = await prisma.order.findUnique({
+            where: { id },
+            include: this.getFullInclude(),
+        });
+
+        if (!order) throw new Error('Order not found');
+        return order;
+    }
+
+    /**
+     * Find order by order number
+     */
+    async findByOrderNumber(orderNumber: string) {
+        const order = await prisma.order.findUnique({
+            where: { orderNumber },
+            include: this.getFullInclude(),
+        });
+
+        if (!order) throw new Error('Order not found');
+        return order;
+    }
+
+    /**
+     * List orders
+     */
+    async findMany(query: {
+        page?: number;
+        limit?: number;
+        status?: OrderStatus;
+        customerId?: string;
+        startDate?: string;
+        endDate?: string;
+    }) {
+        const { page = 1, limit = 20, status, customerId, startDate, endDate } = query;
+
+        const where: any = {
+            ...(status && { status }),
+            ...(customerId && { customerId }),
+            ...(startDate && { createdAt: { gte: new Date(startDate) } }),
+            ...(endDate && { createdAt: { lte: new Date(endDate) } }),
+        };
+
+        const [orders, total] = await Promise.all([
+            prisma.order.findMany({
+                where,
+                include: {
+                    items: true,
+                    customer: { include: { user: { select: { name: true, email: true } } } },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.order.count({ where }),
+        ]);
+
+        return {
+            orders,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        };
+    }
+
+    /**
+     * Update order status
+     */
+    async updateStatus(id: string, status: OrderStatus, notes?: string) {
+        return prisma.order.update({
+            where: { id },
+            data: {
+                status,
+                notes: notes || undefined,
+                ...(status === OrderStatus.CANCELLED && { cancelledAt: new Date() }),
+            },
+            include: this.getFullInclude(),
+        });
+    }
+
+    /**
+     * Add fulfillment info
+     */
+    async addFulfillment(orderId: string, data: {
+        carrier?: string;
+        trackingNumber?: string;
+        trackingUrl?: string;
+        estimatedDelivery?: string;
+    }) {
+        await prisma.fulfillment.create({
+            data: {
+                orderId,
+                carrier: data.carrier,
+                trackingNumber: data.trackingNumber,
+                trackingUrl: data.trackingUrl,
+                estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
+                shippedAt: new Date(),
+            },
+        });
+
+        return prisma.order.update({
+            where: { id: orderId },
+            data: {
+                status: OrderStatus.SHIPPED,
+                fulfillmentStatus: 'fulfilled',
+            },
+            include: this.getFullInclude(),
+        });
+    }
+
+    /**
+     * Get customer orders
+     */
+    async getCustomerOrders(customerId: string, page = 1, limit = 10) {
+        return this.findMany({ customerId, page, limit });
+    }
+
+    /**
+     * Mock payment processor
+     */
+    private async processPayment(
+        paymentInfo: { cardNumber: string; expiryMonth: string; expiryYear: string; cvv: string },
+        amount: number
+    ): Promise<{ success: boolean; transactionId?: string; error?: string }> {
+        // Simulate processing delay
+        await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
+
+        const lastDigit = parseInt(paymentInfo.cardNumber.replace(/\D/g, '').slice(-1), 10);
+
+        // Test card behavior:
+        // Ends in 1: Always success
+        // Ends in 2: Always declined
+        // Other: 80% success rate
+
+        if (lastDigit === 2) {
+            return { success: false, error: 'Card declined' };
+        }
+
+        if (lastDigit !== 1 && Math.random() > 0.8) {
+            return { success: false, error: 'Payment processing failed' };
+        }
+
+        return {
+            success: true,
+            transactionId: `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        };
+    }
+
+    private detectCardBrand(cardNumber: string): string {
+        const number = cardNumber.replace(/\D/g, '');
+        if (number.startsWith('4')) return 'Visa';
+        if (/^5[1-5]/.test(number)) return 'Mastercard';
+        if (/^3[47]/.test(number)) return 'Amex';
+        if (/^6(?:011|5)/.test(number)) return 'Discover';
+        return 'Unknown';
+    }
+
+    private getFullInclude() {
+        return {
+            items: {
+                include: {
+                    variant: {
+                        include: {
+                            product: { include: { images: { take: 1 } } },
+                        },
+                    },
+                },
+            },
+            customer: { include: { user: { select: { name: true, email: true } } } },
+            shippingAddress: true,
+            payments: true,
+            fulfillments: true,
+            discountCode: true,
+        };
+    }
+}
+
+export const orderService = new OrderService();

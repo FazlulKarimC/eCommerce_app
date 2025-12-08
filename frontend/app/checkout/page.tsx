@@ -1,577 +1,288 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { LoadingButton } from '@/components/ui/loading-button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, CreditCard, Loader2, ShoppingCart } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
-import { OrderSuccessScreen } from '@/components/ui/order-success-screen';
-import { useCart } from '@/lib/cart-context';
-import { checkoutFormSchema, CheckoutForm } from '@/lib/validations';
-import { CartItem, ProductSelection } from '@/lib/types';
-import api from '@/lib/axios';
-import { useNavigationLoading } from '@/lib/hooks/useNavigationLoading';
+import { z } from 'zod';
+import { ArrowLeft, CreditCard, Loader2, ShoppingBag, Check } from 'lucide-react';
+import { useCartStore } from '@/lib/cart';
+import { useAuthStore } from '@/lib/auth';
+import { formatPrice, cn } from '@/lib/utils';
+import api from '@/lib/api';
+
+const checkoutSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  phone: z.string().optional(),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  address: z.string().min(1, 'Address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  postalCode: z.string().min(1, 'Postal code is required'),
+  country: z.string().min(1, 'Country is required').default('US'),
+  cardNumber: z.string().length(16, 'Card number must be 16 digits'),
+  expiryMonth: z.string().length(2, 'Invalid month'),
+  expiryYear: z.string().length(2, 'Invalid year'),
+  cvv: z.string().min(3, 'CVV must be 3-4 digits').max(4),
+  cardholderName: z.string().min(1, 'Cardholder name is required'),
+});
+
+type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
-
   const router = useRouter();
-  const { selectedProduct, cartItems, clearCart, getCartTotal } = useCart();
-  const { loadingStates, navigateWithLoading } = useNavigationLoading();
+  const { cart, clearCart } = useCartStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<CheckoutForm>({
-    resolver: zodResolver(checkoutFormSchema),
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CheckoutFormData>({
+    resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      fullName: '',
-      email: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      cardNumber: '',
-      expiryDate: '',
-      cvv: '',
+      email: user?.email || '',
+      firstName: '',
+      lastName: '',
+      country: 'US',
     },
   });
 
-  // Determine if we're checking out from cart or direct buy
-  const isCartCheckout = cartItems.length > 0;
-  const checkoutItems = isCartCheckout ? cartItems : (selectedProduct ? [selectedProduct] : []);
-
-  // Use effect for redirection instead of doing it during render
-  useEffect(() => {
-    if (checkoutItems.length === 0 && !isProcessingOrder) {
-      setIsRedirecting(true);
-      router.push('/');
-    }
-  }, [checkoutItems.length, router, isProcessingOrder]);
-
-
-  // Show order success screen
-  if (orderSuccess) {
+  if (!cart || cart.items.length === 0) {
     return (
-      <OrderSuccessScreen 
-        orderNumber={orderSuccess} 
-        onComplete={() => {
-          router.push(`/thank-you/${orderSuccess}`);
-        }}
-      />
+      <div className="container py-20 text-center">
+        <ShoppingBag className="w-20 h-20 mx-auto text-[var(--brutal-gray-400)] mb-6" />
+        <h1 className="text-4xl font-black">Your Cart is Empty</h1>
+        <p className="text-[var(--brutal-gray-600)] mt-2">
+          Add some items before checkout
+        </p>
+        <Link href="/products" className="brutal-btn brutal-btn-dark mt-8 inline-flex">
+          Start Shopping
+        </Link>
+      </div>
     );
   }
 
-  // Show loading state while redirecting
-  if (isRedirecting) {
-    return <PageLoader message="Redirecting..." />;
-  }
-
-  // Calculate totals
-  const subtotal = isCartCheckout 
-    ? getCartTotal()
-    : (selectedProduct ? selectedProduct.price * selectedProduct.quantity : 0);
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + tax;
-
-  const onSubmit = async (data: CheckoutForm) => {
+  const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
-    setSubmitError('');
+    setError(null);
 
     try {
-      // Step 1: Create Customer
-      const customerResponse = await api.post('/api/customers', {
-        name: data.fullName,
+      const response = await api.post('/checkout', {
         email: data.email,
         phone: data.phone,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zipCode
+        shippingAddress: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          line1: data.address,
+          city: data.city,
+          state: data.state,
+          postalCode: data.postalCode,
+          country: data.country,
+        },
+        paymentInfo: {
+          cardNumber: data.cardNumber,
+          expiryMonth: data.expiryMonth,
+          expiryYear: data.expiryYear,
+          cvv: data.cvv,
+          cardholderName: data.cardholderName,
+        },
       });
 
-      console.log('Customer created:', customerResponse.data);
-
-      // Get customer ID from response
-      // Handle both possible response structures
-      const customerId = customerResponse.data.customer?.id || 
-                         customerResponse.data.id || 
-                         customerResponse.data.customerId;
-
-      if (!customerId) {
-        console.error('API Response:', JSON.stringify(customerResponse.data, null, 2));
-        throw new Error('Customer ID not returned from API');
-      }
-
-      // Transform items to the required format matching the Zod schema
-      const transformItemsForOrder = (items: (CartItem | ProductSelection)[]) => {
-        return items.map(item => {
-          // Ensure productId is a number
-          const productId = parseInt(item.productId);
-          if (isNaN(productId)) {
-            throw new Error(`Invalid productId: ${item.productId}`);
-          }
-
-          return {
-            productId: productId,
-            title: item.productName,
-            description: '', // Description is not available in CartItem or ProductSelection
-            price: item.price,
-            image: 'image' in item ? item.image : 'https://placehold.co/400',
-            selectedVariants: {
-              size: item.selectedSize || '',
-              color: item.selectedColor || ''
-            },
-            quantity: item.quantity
-          };
-        });
-      };
-
-      // Log the items before transformation for debugging
-      console.log('Items before transformation:', isCartCheckout ? cartItems : (selectedProduct ? [selectedProduct] : []));
-
-      // Transform the items
-      const transformedItems = transformItemsForOrder(
-        isCartCheckout ? cartItems : (selectedProduct ? [selectedProduct] : [])
-      );
-
-      // Log the transformed items for debugging
-      console.log('Transformed items:', transformedItems);
-
-      // Create Order (only if customer creation succeeds)
-      const orderResponse = await api.post('/api/orders', {
-        customerId: customerId,
-        items: transformedItems,
-        cardNumber: data.cardNumber,
-        // cvv removed as it's not in the schema
-        total: total,
-        subTotal: subtotal // Changed from subtotal to subTotal to match schema
-      });
-
-      console.log('Order created:', orderResponse.data);
-
-      // Log the full order response for debugging
-      console.log('Full order response structure:', JSON.stringify(orderResponse.data, null, 2));
-
-      const orderResult = orderResponse.data;
-      const orderNumber = orderResult.orderNumber;
-
-      console.log('Order number extracted:', orderNumber);
-
-      if (orderNumber) {
-        // Set processing flag to prevent redirect to landing page
-        setIsProcessingOrder(true);
-
-        // Clear cart and show success screen
+      if (response.data.order) {
         clearCart();
-        setOrderSuccess(orderNumber);
+        router.push(`/thank-you/${response.data.order.orderNumber}`);
       } else {
-        console.error('No order number found in response:', orderResult);
-        const errorMessage = orderResult.error || 'Failed to process order';
-        toast.error(errorMessage);
-        setSubmitError(errorMessage);
+        setError(response.data.error || 'Checkout failed');
       }
-    } catch (error: any) {
-      // Reset processing flag on error
-      setIsProcessingOrder(false);
-      console.error('Checkout error:', error);
-
-      // Log detailed error information for debugging
-      if (error.response) {
-        console.error('API Error Response:', {
-          status: error.response.status,
-          data: error.response.data,
-          headers: error.response.headers
-        });
-      }
-
-      // Provide more detailed error messages to the user via toast
-      if (error.response?.status === 400) {
-        // Handle 400 Bad Request errors with more specific messages
-        if (error.response.data?.details && Array.isArray(error.response.data.details)) {
-          // Handle Zod validation errors
-          const details = error.response.data.details;
-          const firstError = details[0];
-
-          // Create a user-friendly error message
-          let errorMessage = 'Validation error: ';
-
-          if (firstError.path && firstError.path.length > 0) {
-            const fieldName = firstError.path[firstError.path.length - 1];
-            errorMessage += `Invalid ${fieldName}`;
-
-            if (firstError.message) {
-              errorMessage += ` - ${firstError.message}`;
-            }
-          } else {
-            errorMessage += firstError.message || 'Please check your information';
-          }
-
-          toast.error(errorMessage);
-          console.error('Validation errors:', details);
-        } else {
-          // Handle other 400 errors
-          const errorMessage = error.response.data?.error || 
-                              error.response.data?.message || 
-                              'Invalid order data. Please check your information.';
-          toast.error(errorMessage);
-        }
-      } else if (error.message && error.message.includes('Customer ID not returned')) {
-        toast.warning('Customer created successfully, but the system could not process the ID. Please try again.');
-      } else if (error.message && error.message.includes('Network Error')) {
-        toast.error('Network connection error. Please check your internet connection and try again.');
-      } else if (error.response?.status === 500) {
-        toast.error('Server error. Our team has been notified. Please try again later.');
-      } else if (error.message) {
-        toast.error(`Error: ${error.message}`);
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
-
-      // Still set submitError for the form error display
-      if (error.response?.data?.message) {
-        setSubmitError(`API Error: ${error.response.data.message}`);
-      } else if (error.message) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError('Network error. Please try again.');
-      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'An error occurred during checkout');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const formatCardNumber = (value: string) => {
-    // Remove all non-digits and limit to 16 characters
-    const digits = value.replace(/\D/g, '').slice(0, 16);
-    return digits;
-  };
-
-  const formatExpiryDate = (value: string) => {
-    // Remove all non-digits
-    const digits = value.replace(/\D/g, '');
-
-    // Add slash after 2 digits
-    if (digits.length >= 2) {
-      return digits.slice(0, 2) + '/' + digits.slice(2, 4);
-    }
-    return digits;
-  };
-
-
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-8">
+      <div className="container max-w-6xl">
         {/* Header */}
-        <div className="mb-8">
-          <LoadingButton
-            variant="ghost"
-            loading={loadingStates[isCartCheckout ? '/cart' : '/']}
-            onClick={() => {
-              setIsRedirecting(true);
-              navigateWithLoading(isCartCheckout ? '/cart' : '/', isCartCheckout ? '/cart' : '/');
-            }}
-            loadingText={isCartCheckout ? 'Going back to cart...' : 'Going back to products...'}
-            className="mb-4 cursor-pointer transition-colors"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {isCartCheckout ? 'Back to Cart' : 'Back to Products'}
-          </LoadingButton>
-          <h1 className="heading-1">Checkout</h1>
-          <p className="body-small mt-2">Complete your purchase securely</p>
-        </div>
+        <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold mb-8 hover:text-[var(--brutal-red)]">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Cart
+        </Link>
+
+        <h1 className="text-4xl font-black mb-8">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
+          {/* Form */}
           <div className="lg:col-span-2">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Customer Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="heading-3">Customer Information</CardTitle>
-                    <CardDescription className="body-small">
-                      Please provide your contact and shipping details
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              {error && (
+                <div className="bg-[var(--brutal-red)] text-white p-4 border-2 border-[var(--brutal-black)]">
+                  {error}
+                </div>
+              )}
+
+              {/* Contact Info */}
+              <div className="brutal-card p-6">
+                <h2 className="text-xl font-black mb-6">Contact Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-sm block mb-2">Email</label>
+                    <input
+                      type="email"
+                      {...register('email')}
+                      className={cn('brutal-input', errors.email && 'border-[var(--brutal-red)]')}
                     />
+                    {errors.email && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.email.message}</p>}
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-sm block mb-2">Phone (optional)</label>
+                    <input type="tel" {...register('phone')} className="brutal-input" />
+                  </div>
+                </div>
+              </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="john@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              {/* Shipping Address */}
+              <div className="brutal-card p-6">
+                <h2 className="text-xl font-black mb-6">Shipping Address</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-sm block mb-2">First Name</label>
+                    <input {...register('firstName')} className={cn('brutal-input', errors.firstName && 'border-[var(--brutal-red)]')} />
+                    {errors.firstName && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.firstName.message}</p>}
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">Last Name</label>
+                    <input {...register('lastName')} className={cn('brutal-input', errors.lastName && 'border-[var(--brutal-red)]')} />
+                    {errors.lastName && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.lastName.message}</p>}
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-sm block mb-2">Address</label>
+                    <input {...register('address')} className={cn('brutal-input', errors.address && 'border-[var(--brutal-red)]')} />
+                    {errors.address && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.address.message}</p>}
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">City</label>
+                    <input {...register('city')} className={cn('brutal-input', errors.city && 'border-[var(--brutal-red)]')} />
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">State</label>
+                    <input {...register('state')} className={cn('brutal-input', errors.state && 'border-[var(--brutal-red)]')} />
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">Postal Code</label>
+                    <input {...register('postalCode')} className={cn('brutal-input', errors.postalCode && 'border-[var(--brutal-red)]')} />
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">Country</label>
+                    <input {...register('country')} className="brutal-input" defaultValue="US" />
+                  </div>
+                </div>
+              </div>
 
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+1 (555) 123-4567" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="123 Main Street" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+              {/* Payment */}
+              <div className="brutal-card p-6">
+                <h2 className="text-xl font-black mb-6 flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" />
+                  Payment Information
+                </h2>
+                <p className="text-sm text-[var(--brutal-gray-600)] mb-4">
+                  Test: Card ending in 1 = success, 2 = declined, others = 80% success
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-sm block mb-2">Cardholder Name</label>
+                    <input {...register('cardholderName')} className={cn('brutal-input', errors.cardholderName && 'border-[var(--brutal-red)]')} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-sm block mb-2">Card Number</label>
+                    <input
+                      {...register('cardNumber')}
+                      maxLength={16}
+                      placeholder="1234567890123456"
+                      className={cn('brutal-input', errors.cardNumber && 'border-[var(--brutal-red)]')}
                     />
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>City</FormLabel>
-                            <FormControl>
-                              <Input placeholder="New York" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>State</FormLabel>
-                            <FormControl>
-                              <Input placeholder="NY" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="zipCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>ZIP Code</FormLabel>
-                            <FormControl>
-                              <Input placeholder="10001" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    {errors.cardNumber && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.cardNumber.message}</p>}
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">Expiry (MM/YY)</label>
+                    <div className="flex gap-2">
+                      <input {...register('expiryMonth')} maxLength={2} placeholder="MM" className="brutal-input w-20" />
+                      <span className="self-center">/</span>
+                      <input {...register('expiryYear')} maxLength={2} placeholder="YY" className="brutal-input w-20" />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <div>
+                    <label className="font-bold text-sm block mb-2">CVV</label>
+                    <input {...register('cvv')} maxLength={4} placeholder="123" className="brutal-input w-24" />
+                  </div>
+                </div>
+              </div>
 
-                {/* Payment Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="heading-3 flex items-center">
-                      <CreditCard className="mr-2 h-5 w-5" />
-                      Payment Information
-                    </CardTitle>
-                    <CardDescription className="body-small">
-                      Enter your payment details. For testing: use card ending in 1 (approved), 2 (declined), or 3 (error)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="cardNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Card Number</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="1234567890123456"
-                              {...field}
-                              onChange={(e) => {
-                                const formatted = formatCardNumber(e.target.value);
-                                field.onChange(formatted);
-                              }}
-                              maxLength={16}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="expiryDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Expiry Date</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="MM/YY"
-                                {...field}
-                                onChange={(e) => {
-                                  const formatted = formatExpiryDate(e.target.value);
-                                  field.onChange(formatted);
-                                }}
-                                maxLength={5}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="cvv"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CVV</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="123"
-                                {...field}
-                                onChange={(e) => {
-                                  const digits = e.target.value.replace(/\D/g, '').slice(0, 3);
-                                  field.onChange(digits);
-                                }}
-                                maxLength={3}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 cursor-pointer transition-colors"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    `Complete Purchase - $${total.toFixed(2)}`
-                  )}
-                </Button>
-              </form>
-            </Form>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="brutal-btn brutal-btn-primary w-full text-lg py-4"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>Complete Order - {formatPrice(cart.subtotal)}</>
+                )}
+              </button>
+            </form>
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-8">
-              <CardHeader>
-                <CardTitle className="heading-3">Order Summary</CardTitle>
-                <CardDescription className="body-small">
-                  {checkoutItems.length} {checkoutItems.length === 1 ? 'item' : 'items'} in your order
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Product List */}
-                <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-                  {checkoutItems.map((item, index) => (
-                    <div key={`item-${index}-${item.productId}`} className="flex items-center space-x-4 pb-3 border-b">
-                      {/* Product Image */}
-                      <div className="relative w-16 h-16 bg-white flex-shrink-0 checkout-thumbnail">
-                        {('image' in item && typeof item.image === 'string' && item.image) ? (
-                          <Image
-                            src={item.image}
-                            alt={item.productName || 'Product Image'}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <ShoppingCart className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
+            <div className="brutal-card p-6 sticky top-24">
+              <h2 className="text-xl font-black mb-6">Order Summary</h2>
 
-                      {/* Product Details */}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-sm text-foreground">{item.productName}</h3>
-                        <p className="caption">
-                          {item.selectedColor} • {item.selectedSize}
-                        </p>
-                        <div className="flex justify-between items-center mt-1">
-                          <p className="caption">Qty: {item.quantity}</p>
-                          <p className="font-medium text-primary tracking-tight">${(item.price * item.quantity).toFixed(2)}</p>
+              <div className="space-y-4 max-h-80 overflow-y-auto mb-6">
+                {cart.items.map((item) => (
+                  <div key={item.id} className="flex gap-4">
+                    <div className="w-16 h-16 bg-[var(--brutal-gray-100)] border-2 border-[var(--brutal-black)] relative overflow-hidden flex-shrink-0">
+                      {item.product.image ? (
+                        <Image src={item.product.image} alt={item.product.title} fill className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ShoppingBag className="w-6 h-6 text-[var(--brutal-gray-400)]" />
                         </div>
-                      </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm line-clamp-1">{item.product.title}</p>
+                      <p className="text-sm text-[var(--brutal-gray-600)]">Qty: {item.quantity}</p>
+                      <p className="font-bold">{formatPrice(item.lineTotal)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                {/* Order Totals */}
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="body-small">Subtotal</span>
-                    <span className="body-large">${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="body-small">Tax (8%)</span>
-                    <span className="body-large">${tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span className="body-large font-semibold">Total</span>
-                    <span className="text-primary font-bold tracking-tight">${total.toFixed(2)}</span>
-                  </div>
+              <div className="border-t-2 border-[var(--brutal-gray-200)] pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-bold">{formatPrice(cart.subtotal)}</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span className="text-[var(--brutal-gray-500)]">Calculated</span>
+                </div>
+                <div className="flex justify-between text-lg pt-2 border-t">
+                  <span className="font-black">Total</span>
+                  <span className="font-black">{formatPrice(cart.subtotal)}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

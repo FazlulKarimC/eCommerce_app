@@ -1,38 +1,48 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { CartProvider } from "@/lib/cart-context";
-import { Toaster } from "sonner";
+import type { Metadata } from 'next';
+import { Space_Grotesk, Inter } from 'next/font/google';
+import './globals.css';
+import { QueryProvider } from '@/components/providers/QueryProvider';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display',
 });
 
 export const metadata: Metadata = {
-  title: "eCommerce Store",
-  description: "Premium products with seamless checkout experience",
+  title: 'BRUTALIST STORE | Bold Fashion',
+  description: 'Modern fashion with an edge. Shop our collection of streetwear, accessories, and more.',
+  keywords: ['fashion', 'streetwear', 'brutalist', 'clothing', 'accessories'],
+  openGraph: {
+    title: 'BRUTALIST STORE | Bold Fashion',
+    description: 'Modern fashion with an edge',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <CartProvider>
-          {children}
-          <Toaster position="top-right" richColors closeButton />
-        </CartProvider>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+      <body className="min-h-screen flex flex-col">
+        <QueryProvider>
+          <Header />
+          <main className="flex-1 pt-20">
+            {children}
+          </main>
+          <Footer />
+          <CartDrawer />
+        </QueryProvider>
       </body>
     </html>
   );

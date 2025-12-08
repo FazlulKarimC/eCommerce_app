@@ -1,290 +1,257 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { LoadingButton } from '@/components/ui/loading-button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Check, X, Loader2 } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
-import { Product } from '@/lib/types';
-import { useCart } from '@/lib/cart-context';
-import api from '@/lib/axios';
-import { useNavigationLoading } from '@/lib/hooks/useNavigationLoading';
+import { ArrowRight, Truck, Shield, RefreshCw } from 'lucide-react';
+import api from '@/lib/api';
+import { ProductCard } from '@/components/product/ProductCard';
+import type { Collection, ProductListItem } from '@/lib/types';
 
-export default function LandingPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+// Force dynamic rendering since data is fetched from external API at runtime
+export const dynamic = 'force-dynamic';
 
-  const router = useRouter();
-  const { addToCart, getCartItemCount } = useCart();
-  const { loadingStates, navigateWithLoading } = useNavigationLoading();
-  const [activeProduct, setActiveProduct] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string>('');
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(1);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isAddingToCart, setIsAddingToCart] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await api.get('/api/products');
-
-      const parsedProducts = response.data.map((product: any) => {
-        const variants = JSON.parse(product.variants);
-        return {
-          id: product.id.toString(), // Convert to string
-          name: product.title,       // Map title to name
-          description: product.description,
-          price: product.price,
-          image: product.image,
-          inventory: product.inventory,
-          variants: {
-            colors: variants.find((v: any) => v.type === 'color')?.options || [],
-            sizes: variants.find((v: any) => v.type === 'size')?.options || [],
-          },
-        };
-      });
-
-      setProducts(parsedProducts);
-    } catch (err) {
-      setError('Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Reset product selection when active product changes
-  useEffect(() => {
-    if (activeProduct) {
-      const product = products.find((p: Product) => p.id === activeProduct);
-      if (product) {
-        setSelectedColor(product.variants.colors[0] || '');
-        setSelectedSize(product.variants.sizes[0] || '');
-        setQuantity(1);
-      }
-    }
-  }, [activeProduct, products]);
-
-  // Clear success message after 3 seconds
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-
-  const handleAddToCart = (product: Product) => {
-    setIsAddingToCart(product.id);
-
-    // Simulate a slight delay to show loading state
-    setTimeout(() => {
-      addToCart(
-        product,
-        selectedColor || product.variants.colors[0],
-        selectedSize || product.variants.sizes[0],
-        quantity
-      );
-      setSuccessMessage(`${product.name} added to cart!`);
-      setActiveProduct(null);
-      setIsAddingToCart(null);
-    }, 500);
-  };
-
-  const toggleProductOptions = (productId: string) => {
-    setActiveProduct(activeProduct === productId ? null : productId);
-    setSuccessMessage(null);
-  };
-
-  if (loading) {
-    return <PageLoader message="Loading products..." />;
+async function getFeaturedProducts() {
+  try {
+    const response = await api.get('/products?featured=true&limit=8');
+    return response.data.products as ProductListItem[];
+  } catch (error) {
+    console.error('Failed to fetch featured products:', error);
+    return [];
   }
+}
 
-  if (error || products.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="">
-            <p className="text-center text-red-600">{error || 'No products available'}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+async function getFeaturedCollections() {
+  try {
+    const response = await api.get('/collections/featured');
+    return response.data as Collection[];
+  } catch (error) {
+    console.error('Failed to fetch featured collections:', error);
+    return [];
   }
+}
+
+export default async function HomePage() {
+  const [products, collections] = await Promise.all([
+    getFeaturedProducts(),
+    getFeaturedCollections(),
+  ]);
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="heading-1 mb-2">Our Products</h1>
-          <div className="relative">
-            <LoadingButton
-              variant="ghost"
-              size="icon"
-              loading={loadingStates['/cart']}
-              onClick={() => navigateWithLoading('/cart')}
-              className="h-12 w-12 cursor-pointer transition-colors"
-            >
-              <ShoppingCart className="h-6 w-6 text-foreground" />
-              {getCartItemCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {getCartItemCount()}
-                </span>
-              )}
-            </LoadingButton>
-          </div>
-        </div>
-
-        {/* Success Message */}
-        {successMessage && (
-          <div className="fixed top-4 right-4 bg-card border-l-4 border-primary text-foreground px-5 py-4 rounded-md flex items-center shadow-xl z-50 animate-in slide-in-from-right-5 duration-300">
-            <Check className="h-5 w-5 mr-3 text-primary" />
-            <span className="font-medium">{successMessage}</span>
-            <button onClick={() => setSuccessMessage(null)} className="ml-4 hover:text-muted-foreground transition-colors">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product: Product) => (
-            <Card key={product.id} className="flex flex-col border shadow-sm pt-0">
-              <div className="relative aspect-square bg-white product-image">
-                <Image
-                  src={product.image}
-                  alt={product.name || 'Product Image'}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <CardHeader>
-                <CardTitle className="heading-3">{product.name}</CardTitle>
-                <CardDescription className="body-small mt-1">
-                  {product.description.slice(0, 100)}...
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col justify-between flex-grow">
-                <div className="mb-4">
-                  <p className="text-lg font-bold text-primary tracking-tight">${product.price.toFixed(2)}</p>
-                  <p className="caption mt-1">{product.inventory} in stock</p>
-                </div>
-                {activeProduct === product.id ? (
-                  <div className="space-y-4">
-                    {/* Color Selection */}
-                    {product.variants.colors.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Color</label>
-                        <div className="flex flex-wrap gap-2">
-                          {product.variants.colors.map((color: string) => (
-                            <button
-                              key={color}
-                              onClick={() => setSelectedColor(color)}
-                              className={`px-3 py-1 rounded-full text-sm ${
-                                selectedColor === color
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                              }`}
-                            >
-                              {color}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Size Selection */}
-                    {product.variants.sizes.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Size</label>
-                        <div className="flex flex-wrap gap-2">
-                          {product.variants.sizes.map((size: string) => (
-                            <button
-                              key={size}
-                              onClick={() => setSelectedSize(size)}
-                              className={`px-3 py-1 rounded-full text-sm ${
-                                selectedSize === size
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                              }`}
-                            >
-                              {size}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quantity Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Quantity</label>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="px-2 py-1 bg-muted hover:bg-muted/80 rounded-l-md border-r"
-                          disabled={quantity <= 1}
-                        >
-                          -
-                        </button>
-                        <span className="px-4 py-1 bg-card text-center border-y">{quantity}</span>
-                        <button
-                          onClick={() => setQuantity(quantity + 1)}
-                          className="px-2 py-1 bg-muted hover:bg-muted/80 rounded-r-md border-l"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setActiveProduct(null)}
-                        className="flex-1 cursor-pointer transition-colors"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={() => handleAddToCart(product)}
-                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer transition-colors"
-                        disabled={isAddingToCart === product.id}
-                      >
-                        {isAddingToCart === product.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Adding...
-                          </>
-                        ) : (
-                          'Add to Cart'
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      onClick={() => toggleProductOptions(product.id)}
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 cursor-pointer transition-colors"
-                    >
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      Add to Cart
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+    <div>
+      {/* Hero Section */}
+      <section className="relative min-h-[80vh] flex items-center bg-[var(--brutal-yellow)]">
+        <div className="absolute inset-0 grid grid-cols-12 gap-4 opacity-10 pointer-events-none">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <div key={i} className="bg-[var(--brutal-black)]" />
           ))}
         </div>
-      </div>
+
+        <div className="container relative z-10 py-20">
+          <div className="max-w-3xl">
+            <span className="brutal-badge brutal-badge-red mb-6 inline-block">
+              New Season
+            </span>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-none mb-6">
+              BOLD.<br />
+              BRUTAL.<br />
+              <span className="text-[var(--brutal-red)]">BEAUTIFUL.</span>
+            </h1>
+            <p className="text-xl md:text-2xl font-medium mb-8 max-w-xl">
+              Fashion that makes a statement. No compromises, no apologies.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link href="/products" className="brutal-btn brutal-btn-dark text-lg py-4 px-8">
+                Shop Now
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link href="/collections/new-arrivals" className="brutal-btn text-lg py-4 px-8">
+                New Arrivals
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative Elements */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/3 h-[600px] bg-[var(--brutal-red)] hidden lg:block border-l-8 border-[var(--brutal-black)]" />
+      </section>
+
+      {/* Features Bar */}
+      <section className="bg-[var(--brutal-black)] text-[var(--brutal-white)] py-6 border-y-4 border-[var(--brutal-white)]">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center gap-4">
+              <Truck className="w-8 h-8 text-[var(--brutal-yellow)]" />
+              <div>
+                <p className="font-bold">Free Shipping</p>
+                <p className="text-sm text-[var(--brutal-gray-400)]">On orders over $75</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <RefreshCw className="w-8 h-8 text-[var(--brutal-yellow)]" />
+              <div>
+                <p className="font-bold">Easy Returns</p>
+                <p className="text-sm text-[var(--brutal-gray-400)]">30-day return policy</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Shield className="w-8 h-8 text-[var(--brutal-yellow)]" />
+              <div>
+                <p className="font-bold">Secure Checkout</p>
+                <p className="text-sm text-[var(--brutal-gray-400)]">100% protected payments</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Collections */}
+      {collections.length > 0 && (
+        <section className="py-20">
+          <div className="container">
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-black">
+                  Shop by Collection
+                </h2>
+                <p className="text-[var(--brutal-gray-600)] mt-2 text-lg">
+                  Curated selections for every style
+                </p>
+              </div>
+              <Link
+                href="/collections"
+                className="brutal-btn hidden md:flex"
+              >
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {collections.slice(0, 3).map((collection, index) => (
+                <Link
+                  key={collection.id}
+                  href={`/collections/${collection.slug}`}
+                  className="brutal-card group relative aspect-[4/5] overflow-hidden"
+                >
+                  {collection.image ? (
+                    <Image
+                      src={collection.image}
+                      alt={collection.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[var(--brutal-gray-200)]" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <h3 className="text-2xl font-black mb-2">{collection.title}</h3>
+                    <p className="text-white/80">{collection._count?.products || 0} Products</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <Link
+              href="/collections"
+              className="brutal-btn mt-8 md:hidden w-full"
+            >
+              View All Collections
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Products */}
+      {products.length > 0 && (
+        <section className="py-20 bg-[var(--brutal-cream)]">
+          <div className="container">
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <span className="brutal-badge brutal-badge-red mb-4 inline-block">
+                  Trending Now
+                </span>
+                <h2 className="text-4xl md:text-5xl font-black">
+                  Featured Products
+                </h2>
+              </div>
+              <Link
+                href="/products"
+                className="brutal-btn hidden md:flex"
+              >
+                Shop All
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="product-grid">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            <Link
+              href="/products"
+              className="brutal-btn mt-8 md:hidden w-full"
+            >
+              View All Products
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* CTA Section */}
+      <section className="py-20 bg-[var(--brutal-red)] text-white">
+        <div className="container text-center">
+          <h2 className="text-4xl md:text-6xl font-black mb-6">
+            JOIN THE MOVEMENT
+          </h2>
+          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-90">
+            Subscribe for early access to new drops, exclusive offers, and 10% off your first order.
+          </p>
+          <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="brutal-input flex-1 bg-white text-black"
+            />
+            <button type="submit" className="brutal-btn brutal-btn-dark">
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Brand Story */}
+      <section className="py-20">
+        <div className="container">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                OUR STORY
+              </h2>
+              <p className="text-lg text-[var(--brutal-gray-700)] mb-4">
+                Born from a love of bold design and sustainable fashion, BRUTALIST represents a new era of conscious style. We believe that fashion should be a statement, not a compromise.
+              </p>
+              <p className="text-lg text-[var(--brutal-gray-700)] mb-8">
+                Every piece in our collection is thoughtfully designed and ethically produced. From organic materials to fair labor practices, we're committed to doing things differently.
+              </p>
+              <Link href="/about" className="brutal-btn brutal-btn-dark">
+                Learn More
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="brutal-card aspect-square relative overflow-hidden">
+              <Image
+                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800"
+                alt="Our story"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

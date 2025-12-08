@@ -1,130 +1,167 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
+import { orderService } from '../services/order.service';
+import { validateBody, validateParams, validateQuery } from '../middleware/validate';
+import { authenticate, optionalAuth } from '../middleware/auth';
+import { requireStaff } from '../middleware/requireRole';
+import {
+  idParamSchema,
+  orderQuerySchema,
+} from '../validators/common.validator';
+import {
+  updateOrderStatusSchema,
+  addFulfillmentSchema,
+  cancelOrderSchema,
+} from '../validators/order.validator';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
-import { sendApprovedEmail, sendDeclinedEmail, sendFailedEmail } from '../utils/mailer';
 
-const prisma = new PrismaClient();
 const router = Router();
 
-// --- Zod schemas ---
-const itemSchema = z.object({
-  productId: z.number(),
-  title: z.string().min(1),
-  description: z.string(),
-  price: z.number().positive(),
-  image: z.string().url(), 
-  selectedVariants: z.record(z.string(), z.string()),
-  quantity: z.number().min(1),
-});
+// ==================== CUSTOMER ROUTES ====================
 
-
-
-const orderSchema = z.object({
-  customerId: z.number(),
-  cardNumber: z.string().min(1),
-  items: z.array(itemSchema).min(1),
-  subTotal: z.number().nonnegative(),
-  total: z.number().nonnegative(),
-});
-
-// POST /api/orders
-// Create a new order and simulate a transaction
-router.post('/', async (req, res) => {
-  const parsed = orderSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: 'Invalid input', details: parsed.error.errors });
-    return;
-  }
-
-  const { customerId, cardNumber, items, subTotal, total } = parsed.data;
-
-  const customerEmail = await prisma.customer.findUnique({
-    where: { id: customerId },
-    select: { email: true },
-  });
-
-  if (!customerEmail) {
-    res.status(404).json({ error: 'Customer not found' });
-    return;
-  }
-
-
-  const lastDigit = Number(cardNumber.slice(-1));
-  let status = ""
-
-  if (lastDigit === 1) {
-    status = 'approved';
-  } else if (lastDigit === 2) {
-    status = 'declined'; 
-  } else if (lastDigit <= 0 || lastDigit > 2) {
-    status = 'failed'; 
-  }
-
-  if (status !== "approved") {
-    // If not approved, simulate a failed transaction
-    res.status(400).json({ error: `Transaction ${status}` });
-
-    // Send appropriate email based on status
-    if (status === 'failed') {
-      await sendFailedEmail(customerEmail.email);
-    } else if (status === 'declined') {
-      await sendDeclinedEmail(customerEmail.email);
-    }
-    return;
-  }
-
-  // Unique order number
-  const orderNumber = `ORD-${new Date().getFullYear()}-${Math.floor(Math.random() * 1_000_000)}`;
-
-  try {
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        status,
-        customerId,
-        cardNumber,
-        items,    // JSON column 
-        subTotal,
-        total,
-      },
-    });
-
-    res.status(201).json({ orderNumber: order.orderNumber});
-    await sendApprovedEmail(customerEmail.email);
-    console.log('Order created:', order.orderNumber);
-    return;
-
-  } catch (err) {
-    console.error('Error creating order:', err);
-    res.status(500).json({ error: 'Failed to create order' });
-    await sendFailedEmail(customerEmail.email);
-    return;
-  }
-});
-
-// GET /api/orders/:orderNumber
-// Fetch an order for a thank-you page
-router.get('/:orderNumber', async (req: Request<{ orderNumber: string }>, res: Response) => {
-    const { orderNumber } = req.params;
-
+// Get order by order number (public - for thank you page)
+router.get(
+  '/number/:orderNumber',
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const order = await prisma.order.findUnique({
-        where: { orderNumber },
-        include: {
-          customer: true,
-        },
-      });
-
-      if (!order) {
+      const order = await orderService.findByOrderNumber(req.params.orderNumber);
+      res.json(order);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Order not found') {
         res.status(404).json({ error: 'Order not found' });
         return;
       }
+      next(error);
+    }
+  }
+);
+
+// Get my orders (authenticated customer)
+router.get(
+  '/my-orders',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await orderService.getCustomerOrders(req.user!.userId, page, limit);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Get single order (authenticated - must be own order or admin)
+router.get(
+  '/:id',
+  authenticate,
+  validateParams(idParamSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.findById(req.params.id);
+
+      // Check if user owns this order or is admin/staff
+      const isOwner = order.customerId === req.user!.userId;
+      const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'STAFF';
+
+      if (!isOwner && !isStaff) {
+        res.status(403).json({ error: 'Access denied' });
+        return;
+      }
+
       res.json(order);
-      return;
-    } catch (err) {
-      console.error('Error fetching order:', err);
-      res.status(500).json({ error: 'Failed to fetch order' });
-      return;
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Order not found') {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+      next(error);
+    }
+  }
+);
+
+// ==================== ADMIN ROUTES ====================
+
+// List all orders (admin/staff)
+router.get(
+  '/',
+  authenticate,
+  requireStaff,
+  validateQuery(orderQuerySchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await orderService.findMany(req.query as any);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Update order status (admin/staff)
+router.patch(
+  '/:id/status',
+  authenticate,
+  requireStaff,
+  validateParams(idParamSchema),
+  validateBody(updateOrderStatusSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.updateStatus(
+        req.params.id,
+        req.body.status,
+        req.body.notes
+      );
+      res.json(order);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Order not found') {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+      next(error);
+    }
+  }
+);
+
+// Add fulfillment/shipping info (admin/staff)
+router.post(
+  '/:id/fulfillment',
+  authenticate,
+  requireStaff,
+  validateParams(idParamSchema),
+  validateBody(addFulfillmentSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.addFulfillment(req.params.id, req.body);
+
+      // Log mock email
+      console.log(`[MOCK EMAIL] Shipping notification sent for order ${order.orderNumber}`);
+
+      res.json(order);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Cancel order (admin/staff)
+router.post(
+  '/:id/cancel',
+  authenticate,
+  requireStaff,
+  validateParams(idParamSchema),
+  validateBody(cancelOrderSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.updateStatus(
+        req.params.id,
+        'CANCELLED',
+        req.body.reason
+      );
+      res.json(order);
+    } catch (error) {
+      next(error);
     }
   }
 );

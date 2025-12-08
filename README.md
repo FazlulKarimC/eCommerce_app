@@ -107,3 +107,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Built with 💻 and ☕ by Fazlul Karim.
+
+Admin:    admin@brutaliststore.com / Admin123!
+Staff:    staff@brutaliststore.com / Staff123!
+Customer: customer@example.com / Customer123!
