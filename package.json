@@ -1,0 +1,28 @@
+{
+  "name": "ecommerce-app",
+  "version": "1.0.0",
+  "description": "Full-stack e-commerce application with Next.js frontend and Express backend",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"yellow,cyan\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "start": "concurrently -n \"backend,frontend\" -c \"yellow,cyan\" \"npm run start --prefix backend\" \"npm run start --prefix frontend\"",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "db:push": "npm run db:push --prefix backend",
+    "db:migrate": "npm run db:migrate --prefix backend",
+    "db:seed": "npm run seed --prefix backend",
+    "db:studio": "npm run db:studio --prefix backend"
+  },
+  "keywords": [
+    "ecommerce",
+    "nextjs",
+    "express",
+    "prisma",
+    "fullstack"
+  ],
+  "author": "Fazlul Karim",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
