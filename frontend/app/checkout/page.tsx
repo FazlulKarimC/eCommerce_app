@@ -56,9 +56,9 @@ export default function CheckoutPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container py-20 text-center">
-        <ShoppingBag className="w-20 h-20 mx-auto text-[var(--brutal-gray-400)] mb-6" />
+        <ShoppingBag className="w-20 h-20 mx-auto text-(--brutal-gray-400) mb-6" />
         <h1 className="text-4xl font-black">Your Cart is Empty</h1>
-        <p className="text-[var(--brutal-gray-600)] mt-2">
+        <p className="text-(--brutal-gray-600) mt-2">
           Add some items before checkout
         </p>
         <Link href="/products" className="brutal-btn brutal-btn-dark mt-8 inline-flex">
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
     <div className="py-8">
       <div className="container max-w-6xl">
         {/* Header */}
-        <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold mb-8 hover:text-[var(--brutal-red)]">
+        <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold mb-8 hover:text-(--brutal-red)">
           <ArrowLeft className="w-4 h-4" />
           Back to Cart
         </Link>
@@ -123,7 +123,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {error && (
-                <div className="bg-[var(--brutal-red)] text-white p-4 border-2 border-[var(--brutal-black)]">
+                <div className="bg-(--brutal-red) text-white p-4 border-2 border-(--brutal-black)">
                   {error}
                 </div>
               )}
@@ -137,9 +137,9 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       {...register('email')}
-                      className={cn('brutal-input', errors.email && 'border-[var(--brutal-red)]')}
+                      className={cn('brutal-input', errors.email && 'border-(--brutal-red)')}
                     />
-                    {errors.email && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.email.message}</p>}
+                    {errors.email && <p className="text-(--brutal-red) text-sm mt-1">{errors.email.message}</p>}
                   </div>
                   <div className="md:col-span-2">
                     <label className="font-bold text-sm block mb-2">Phone (optional)</label>
@@ -154,30 +154,30 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="font-bold text-sm block mb-2">First Name</label>
-                    <input {...register('firstName')} className={cn('brutal-input', errors.firstName && 'border-[var(--brutal-red)]')} />
-                    {errors.firstName && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.firstName.message}</p>}
+                    <input {...register('firstName')} className={cn('brutal-input', errors.firstName && 'border-(--brutal-red)')} />
+                    {errors.firstName && <p className="text-(--brutal-red) text-sm mt-1">{errors.firstName.message}</p>}
                   </div>
                   <div>
                     <label className="font-bold text-sm block mb-2">Last Name</label>
-                    <input {...register('lastName')} className={cn('brutal-input', errors.lastName && 'border-[var(--brutal-red)]')} />
-                    {errors.lastName && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.lastName.message}</p>}
+                    <input {...register('lastName')} className={cn('brutal-input', errors.lastName && 'border-(--brutal-red)')} />
+                    {errors.lastName && <p className="text-(--brutal-red) text-sm mt-1">{errors.lastName.message}</p>}
                   </div>
                   <div className="md:col-span-2">
                     <label className="font-bold text-sm block mb-2">Address</label>
-                    <input {...register('address')} className={cn('brutal-input', errors.address && 'border-[var(--brutal-red)]')} />
-                    {errors.address && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.address.message}</p>}
+                    <input {...register('address')} className={cn('brutal-input', errors.address && 'border-(--brutal-red)')} />
+                    {errors.address && <p className="text-(--brutal-red) text-sm mt-1">{errors.address.message}</p>}
                   </div>
                   <div>
                     <label className="font-bold text-sm block mb-2">City</label>
-                    <input {...register('city')} className={cn('brutal-input', errors.city && 'border-[var(--brutal-red)]')} />
+                    <input {...register('city')} className={cn('brutal-input', errors.city && 'border-(--brutal-red)')} />
                   </div>
                   <div>
                     <label className="font-bold text-sm block mb-2">State</label>
-                    <input {...register('state')} className={cn('brutal-input', errors.state && 'border-[var(--brutal-red)]')} />
+                    <input {...register('state')} className={cn('brutal-input', errors.state && 'border-(--brutal-red)')} />
                   </div>
                   <div>
                     <label className="font-bold text-sm block mb-2">Postal Code</label>
-                    <input {...register('postalCode')} className={cn('brutal-input', errors.postalCode && 'border-[var(--brutal-red)]')} />
+                    <input {...register('postalCode')} className={cn('brutal-input', errors.postalCode && 'border-(--brutal-red)')} />
                   </div>
                   <div>
                     <label className="font-bold text-sm block mb-2">Country</label>
@@ -192,13 +192,13 @@ export default function CheckoutPage() {
                   <CreditCard className="w-5 h-5" />
                   Payment Information
                 </h2>
-                <p className="text-sm text-[var(--brutal-gray-600)] mb-4">
+                <p className="text-sm text-(--brutal-gray-600) mb-4">
                   Test: Card ending in 1 = success, 2 = declined, others = 80% success
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="font-bold text-sm block mb-2">Cardholder Name</label>
-                    <input {...register('cardholderName')} className={cn('brutal-input', errors.cardholderName && 'border-[var(--brutal-red)]')} />
+                    <input {...register('cardholderName')} className={cn('brutal-input', errors.cardholderName && 'border-(--brutal-red)')} />
                   </div>
                   <div className="md:col-span-2">
                     <label className="font-bold text-sm block mb-2">Card Number</label>
@@ -206,9 +206,9 @@ export default function CheckoutPage() {
                       {...register('cardNumber')}
                       maxLength={16}
                       placeholder="1234567890123456"
-                      className={cn('brutal-input', errors.cardNumber && 'border-[var(--brutal-red)]')}
+                      className={cn('brutal-input', errors.cardNumber && 'border-(--brutal-red)')}
                     />
-                    {errors.cardNumber && <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.cardNumber.message}</p>}
+                    {errors.cardNumber && <p className="text-(--brutal-red) text-sm mt-1">{errors.cardNumber.message}</p>}
                   </div>
                   <div>
                     <label className="font-bold text-sm block mb-2">Expiry (MM/YY)</label>
@@ -250,32 +250,32 @@ export default function CheckoutPage() {
               <div className="space-y-4 max-h-80 overflow-y-auto mb-6">
                 {cart.items.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="w-16 h-16 bg-[var(--brutal-gray-100)] border-2 border-[var(--brutal-black)] relative overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-16 bg-(--brutal-gray-100) border-2 border-(--brutal-black) relative overflow-hidden shrink-0">
                       {item.product.image ? (
                         <Image src={item.product.image} alt={item.product.title} fill className="object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="w-6 h-6 text-[var(--brutal-gray-400)]" />
+                          <ShoppingBag className="w-6 h-6 text-(--brutal-gray-400)" />
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm line-clamp-1">{item.product.title}</p>
-                      <p className="text-sm text-[var(--brutal-gray-600)]">Qty: {item.quantity}</p>
+                      <p className="text-sm text-(--brutal-gray-600)">Qty: {item.quantity}</p>
                       <p className="font-bold">{formatPrice(item.lineTotal)}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t-2 border-[var(--brutal-gray-200)] pt-4 space-y-2">
+              <div className="border-t-2 border-(--brutal-gray-200) pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-bold">{formatPrice(cart.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="text-[var(--brutal-gray-500)]">Calculated</span>
+                  <span className="text-(--brutal-gray-500)">Calculated</span>
                 </div>
                 <div className="flex justify-between text-lg pt-2 border-t">
                   <span className="font-black">Total</span>
