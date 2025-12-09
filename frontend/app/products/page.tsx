@@ -6,6 +6,7 @@ import { Filter, X, ChevronDown } from 'lucide-react';
 import { useProducts, useCategories } from '@/lib/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const sortOptions = [
     { label: 'Newest', value: 'createdAt-desc' },
@@ -39,31 +40,35 @@ function ProductsPageContent() {
     const pagination = data?.pagination;
 
     return (
-        <div className="py-8">
-            <div className="container">
+        <div className="py-16 bg-background min-h-screen">
+            <div className="container mx-auto px-4">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl md:text-5xl font-black">All Products</h1>
-                    <p className="text-[var(--brutal-gray-600)] mt-2">
+                    <span className="inline-block bg-primary text-primary-foreground font-mono text-sm font-bold px-3 py-1 mb-3 -rotate-1 border-2 border-black">
+                        SHOP
+                    </span>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter">ALL PRODUCTS</h1>
+                    <p className="text-muted-foreground mt-2">
                         {pagination?.total || 0} products
                     </p>
                 </div>
 
                 {/* Toolbar */}
                 <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
-                    <button
+                    <Button
+                        variant="outline"
                         onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        className="brutal-btn md:hidden"
+                        className="md:hidden border-4 border-black font-bold"
                     >
-                        <Filter className="w-4 h-4" />
+                        <Filter className="w-4 h-4 mr-2" />
                         Filters
-                    </button>
+                    </Button>
 
                     <div className="hidden md:flex items-center gap-2">
                         {selectedCategory && (
                             <button
                                 onClick={() => setSelectedCategory(undefined)}
-                                className="brutal-badge flex items-center gap-1"
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-secondary text-secondary-foreground font-mono text-xs font-bold border-2 border-black"
                             >
                                 {categories?.find((c) => c.slug === selectedCategory)?.name}
                                 <X className="w-3 h-3" />
@@ -75,7 +80,7 @@ function ProductsPageContent() {
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="brutal-input pr-10 min-w-[200px] appearance-none cursor-pointer"
+                            className="pr-10 min-w-[200px] h-12 px-4 font-bold border-4 border-black bg-background appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
                         >
                             {sortOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -91,7 +96,7 @@ function ProductsPageContent() {
                     {/* Filters Sidebar */}
                     <aside
                         className={cn(
-                            'fixed inset-y-0 left-0 w-80 bg-[var(--brutal-white)] border-r-4 border-[var(--brutal-black)] z-40 p-6 transition-transform md:relative md:inset-auto md:w-64 md:translate-x-0 md:p-0 md:border-0 md:block',
+                            'fixed inset-y-0 left-0 w-80 bg-background border-r-4 border-black z-40 p-6 transition-transform md:relative md:inset-auto md:w-64 md:translate-x-0 md:p-0 md:border-0 md:block',
                             isFilterOpen ? 'translate-x-0' : '-translate-x-full'
                         )}
                     >
@@ -104,7 +109,7 @@ function ProductsPageContent() {
 
                         {/* Categories */}
                         <div className="mb-8">
-                            <h3 className="font-bold uppercase tracking-wider mb-4">Categories</h3>
+                            <h3 className="font-black uppercase tracking-wider mb-4 text-sm">Categories</h3>
                             <ul className="space-y-2">
                                 <li>
                                     <button
@@ -113,8 +118,8 @@ function ProductsPageContent() {
                                             setIsFilterOpen(false);
                                         }}
                                         className={cn(
-                                            'text-left hover:text-[var(--brutal-red)] transition-colors',
-                                            !selectedCategory && 'text-[var(--brutal-red)] font-bold'
+                                            'text-left hover:text-primary transition-colors font-medium',
+                                            !selectedCategory && 'text-primary font-bold'
                                         )}
                                     >
                                         All Products
@@ -128,13 +133,13 @@ function ProductsPageContent() {
                                                 setIsFilterOpen(false);
                                             }}
                                             className={cn(
-                                                'text-left hover:text-[var(--brutal-red)] transition-colors',
-                                                selectedCategory === category.slug && 'text-[var(--brutal-red)] font-bold'
+                                                'text-left hover:text-primary transition-colors font-medium',
+                                                selectedCategory === category.slug && 'text-primary font-bold'
                                             )}
                                         >
                                             {category.name}
                                             {category._count?.products && (
-                                                <span className="text-[var(--brutal-gray-500)] ml-1">
+                                                <span className="text-muted-foreground ml-1">
                                                     ({category._count.products})
                                                 </span>
                                             )}
@@ -151,8 +156,8 @@ function ProductsPageContent() {
                                                                 setIsFilterOpen(false);
                                                             }}
                                                             className={cn(
-                                                                'text-sm text-left hover:text-[var(--brutal-red)] transition-colors',
-                                                                selectedCategory === sub.slug && 'text-[var(--brutal-red)] font-bold'
+                                                                'text-sm text-left hover:text-primary transition-colors',
+                                                                selectedCategory === sub.slug && 'text-primary font-bold'
                                                             )}
                                                         >
                                                             {sub.name}
@@ -178,13 +183,13 @@ function ProductsPageContent() {
                     {/* Products Grid */}
                     <div className="flex-1">
                         {isLoading ? (
-                            <div className="product-grid">
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                 {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className="brutal-card animate-pulse">
-                                        <div className="aspect-square bg-[var(--brutal-gray-200)]" />
+                                    <div key={i} className="border-4 border-black bg-muted shadow-md animate-pulse">
+                                        <div className="aspect-[3/4] bg-muted" />
                                         <div className="p-4 space-y-2">
-                                            <div className="h-4 bg-[var(--brutal-gray-200)] w-3/4" />
-                                            <div className="h-4 bg-[var(--brutal-gray-200)] w-1/2" />
+                                            <div className="h-4 bg-muted-foreground/20 w-3/4 rounded" />
+                                            <div className="h-4 bg-muted-foreground/20 w-1/2 rounded" />
                                         </div>
                                     </div>
                                 ))}
@@ -192,13 +197,13 @@ function ProductsPageContent() {
                         ) : products.length === 0 ? (
                             <div className="text-center py-20">
                                 <p className="text-xl font-bold">No products found</p>
-                                <p className="text-[var(--brutal-gray-600)] mt-2">
+                                <p className="text-muted-foreground mt-2">
                                     Try adjusting your filters
                                 </p>
                             </div>
                         ) : (
                             <>
-                                <div className="product-grid">
+                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                     {products.map((product) => (
                                         <ProductCard key={product.id} product={product} />
                                     ))}
@@ -212,10 +217,10 @@ function ProductsPageContent() {
                                                 key={i}
                                                 onClick={() => setPage(i + 1)}
                                                 className={cn(
-                                                    'w-10 h-10 border-2 border-[var(--brutal-black)] font-bold',
+                                                    'w-10 h-10 border-4 border-black font-bold transition-all rounded-lg',
                                                     page === i + 1
-                                                        ? 'bg-[var(--brutal-black)] text-white'
-                                                        : 'hover:bg-[var(--brutal-gray-100)]'
+                                                        ? 'bg-black text-white'
+                                                        : 'bg-background hover:bg-muted'
                                                 )}
                                             >
                                                 {i + 1}
@@ -236,16 +241,16 @@ function ProductsPageContent() {
 export default function ProductsPage() {
     return (
         <Suspense fallback={
-            <div className="container py-8">
+            <div className="container mx-auto px-4 py-16">
                 <div className="animate-pulse">
-                    <div className="h-12 w-64 bg-[var(--brutal-gray-200)] mb-8" />
-                    <div className="product-grid">
+                    <div className="h-12 w-64 bg-muted mb-8 rounded" />
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="brutal-card">
-                                <div className="aspect-square bg-[var(--brutal-gray-200)]" />
+                            <div key={i} className="border-4 border-black">
+                                <div className="aspect-[3/4] bg-muted" />
                                 <div className="p-4 space-y-2">
-                                    <div className="h-4 bg-[var(--brutal-gray-200)] w-3/4" />
-                                    <div className="h-4 bg-[var(--brutal-gray-200)] w-1/2" />
+                                    <div className="h-4 bg-muted w-3/4 rounded" />
+                                    <div className="h-4 bg-muted w-1/2 rounded" />
                                 </div>
                             </div>
                         ))}
