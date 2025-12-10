@@ -15,11 +15,10 @@ export function FeaturesBar() {
           {features.map((feature, index) => (
             <div
               key={feature.label}
-              className={`flex items-center gap-3 p-4 border-4 border-black bg-background shadow-xs hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all cursor-default ${
-                index % 2 === 0 ? "rotate-1" : "-rotate-1"
-              } hover:rotate-0`}
+              className={`flex items-center gap-3 p-4 border-4 border-black bg-background shadow-xs hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-xl ${index % 2 === 0 ? "rotate-1" : "-rotate-1"
+                } hover:rotate-0`}
             >
-              <div className="bg-secondary p-3 border-4 border-black">
+              <div className="bg-secondary p-3 border-4 border-black rounded-lg">
                 <feature.icon className="h-6 w-6" strokeWidth={3} />
               </div>
               <div>

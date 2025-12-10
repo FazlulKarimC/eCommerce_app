@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, Folder, ArrowLeft } from 'lucide-react';
+import { ChevronDown, Folder, ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { useCollection, useProducts } from '@/lib/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { cn } from '@/lib/utils';
@@ -39,149 +39,183 @@ function CollectionDetailContent() {
 
     if (isLoadingCollection) {
         return (
-            <div className="py-8">
-                <div className="container">
-                    <div className="animate-pulse">
-                        <div className="h-64 bg-[var(--brutal-gray-200)] mb-8" />
-                        <div className="h-10 w-64 bg-[var(--brutal-gray-200)] mb-4" />
-                        <div className="h-6 w-96 bg-[var(--brutal-gray-200)]" />
+            <div className="min-h-screen bg-[#FAFAFA]">
+                <main className="py-8">
+                    <div className="container mx-auto px-4">
+                        <div className="animate-pulse">
+                            <div className="h-8 w-48 bg-muted rounded-lg mb-6" />
+                            <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                <div className="h-64 md:h-80 bg-muted" />
+                            </div>
+                            <div className="h-10 w-64 bg-muted rounded-lg mb-4" />
+                        </div>
                     </div>
-                </div>
+                </main>
             </div>
         );
     }
 
     if (!collection) {
         return (
-            <div className="container py-20 text-center">
-                <Folder className="w-20 h-20 mx-auto text-[var(--brutal-gray-300)] mb-6" />
-                <h1 className="text-4xl font-black">Collection Not Found</h1>
-                <p className="text-[var(--brutal-gray-600)] mt-2">
-                    The collection you're looking for doesn't exist.
-                </p>
-                <Link href="/collections" className="brutal-btn brutal-btn-dark mt-8 inline-flex">
-                    View All Collections
-                </Link>
+            <div className="min-h-screen bg-[#FAFAFA]">
+                <main className="container mx-auto px-4 py-20 text-center">
+                    <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-[#FFEB3B] border-4 border-black rounded-xl flex items-center justify-center">
+                            <Folder className="w-10 h-10" />
+                        </div>
+                        <h1 className="text-3xl font-black mb-2">COLLECTION NOT FOUND</h1>
+                        <p className="text-muted-foreground mb-8">The collection you're looking for doesn't exist.</p>
+                        <Link
+                            href="/collections"
+                            className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+                        >
+                            VIEW ALL COLLECTIONS
+                        </Link>
+                    </div>
+                </main>
             </div>
         );
     }
 
     return (
-        <div className="py-8">
-            <div className="container">
-                {/* Breadcrumb */}
-                <nav className="mb-6">
-                    <Link href="/collections" className="inline-flex items-center gap-2 text-sm font-bold hover:text-[var(--brutal-red)]">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Collections
-                    </Link>
-                </nav>
-
-                {/* Collection Header */}
-                <div className="brutal-card overflow-hidden mb-8">
-                    <div className="relative h-64 md:h-80 bg-[var(--brutal-gray-100)]">
-                        {collection.image ? (
-                            <Image
-                                src={collection.image}
-                                alt={collection.title}
-                                fill
-                                className="object-cover"
-                                priority
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <Folder className="w-24 h-24 text-[var(--brutal-gray-300)]" />
-                            </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-8">
-                            <h1 className="text-3xl md:text-5xl font-black text-white">
-                                {collection.title}
-                            </h1>
-                            {collection.description && (
-                                <p className="text-white/80 mt-2 max-w-2xl text-lg">
-                                    {collection.description}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Toolbar */}
-                <div className="flex items-center justify-between gap-4 mb-8">
-                    <p className="text-[var(--brutal-gray-600)]">
-                        {pagination?.total || 0} products
-                    </p>
-
-                    <div className="relative">
-                        <select
-                            value={sortBy}
-                            onChange={(e) => {
-                                setSortBy(e.target.value);
-                                setPage(1);
-                            }}
-                            className="brutal-input pr-10 min-w-[200px] appearance-none cursor-pointer"
+        <div className="min-h-screen bg-[#FAFAFA]">
+            <main className="py-8">
+                <div className="container mx-auto px-4">
+                    {/* Breadcrumb */}
+                    <nav className="mb-6">
+                        <Link
+                            href="/collections"
+                            className="inline-flex items-center gap-2 text-sm font-bold hover:text-[#FF3B30] transition-colors group"
                         >
-                            {sortOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
-                    </div>
-                </div>
-
-                {/* Products Grid */}
-                {isLoadingProducts ? (
-                    <div className="product-grid">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="brutal-card animate-pulse">
-                                <div className="aspect-square bg-[var(--brutal-gray-200)]" />
-                                <div className="p-4 space-y-2">
-                                    <div className="h-4 bg-[var(--brutal-gray-200)] w-3/4" />
-                                    <div className="h-4 bg-[var(--brutal-gray-200)] w-1/2" />
-                                </div>
+                            <div className="w-8 h-8 bg-white border-3 border-black rounded-lg flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-[3px] group-hover:translate-y-[3px] transition-all">
+                                <ArrowLeft className="w-4 h-4" />
                             </div>
-                        ))}
+                            <span>Back to Collections</span>
+                        </Link>
+                    </nav>
+
+                    {/* Collection Header */}
+                    <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="relative h-64 md:h-80 bg-black">
+                            {collection.image ? (
+                                <Image
+                                    src={collection.image}
+                                    alt={collection.title}
+                                    fill
+                                    className="object-cover opacity-70"
+                                    priority
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-muted">
+                                    <Folder className="w-24 h-24 text-muted-foreground" />
+                                </div>
+                            )}
+                            {/* Overlay pattern */}
+                            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
+
+                            {/* Content */}
+                            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                                <span className="inline-block bg-[#FF3B30] text-white font-mono text-xs font-bold px-3 py-1.5 border-3 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -rotate-2 mb-4">
+                                    COLLECTION
+                                </span>
+                                <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter">
+                                    {collection.title.toUpperCase()}
+                                </h1>
+                                {collection.description && (
+                                    <p className="text-white/80 mt-3 max-w-2xl text-lg">{collection.description}</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                ) : products.length === 0 ? (
-                    <div className="text-center py-20">
-                        <p className="text-xl font-bold">No products in this collection</p>
-                        <p className="text-[var(--brutal-gray-600)] mt-2">
-                            Check back soon for new additions
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="product-grid">
-                            {products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
+
+                    {/* Toolbar */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                        <div className="flex items-center gap-3">
+                            <span className="bg-black text-white font-mono text-sm font-bold px-4 py-2 rounded-lg border-3 border-black">
+                                {pagination?.total || products.length} PRODUCTS
+                            </span>
                         </div>
 
-                        {/* Pagination */}
-                        {pagination && pagination.totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 mt-12">
-                                {Array.from({ length: pagination.totalPages }).map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPage(i + 1)}
-                                        className={cn(
-                                            'w-10 h-10 border-2 border-[var(--brutal-black)] font-bold',
-                                            page === i + 1
-                                                ? 'bg-[var(--brutal-black)] text-white'
-                                                : 'hover:bg-[var(--brutal-gray-100)]'
-                                        )}
-                                    >
-                                        {i + 1}
-                                    </button>
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => {
+                                        setSortBy(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    className="appearance-none bg-white border-4 border-black rounded-xl px-4 py-3 pr-12 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all cursor-pointer focus:outline-none focus:ring-0"
+                                >
+                                    {sortOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
+                            </div>
+
+                            <button className="flex items-center gap-2 bg-[#FFEB3B] border-4 border-black rounded-xl px-4 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all">
+                                <SlidersHorizontal className="w-4 h-4" />
+                                FILTERS
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Products Grid */}
+                    {isLoadingProducts ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="border-4 border-black rounded-2xl bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-pulse overflow-hidden">
+                                    <div className="aspect-square bg-muted" />
+                                    <div className="p-4 space-y-2">
+                                        <div className="h-4 bg-muted rounded w-3/4" />
+                                        <div className="h-4 bg-muted rounded w-1/2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : products.length === 0 ? (
+                        <div className="text-center py-20">
+                            <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                <Folder className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                                <p className="text-xl font-black">No products in this collection</p>
+                                <p className="text-muted-foreground mt-2">
+                                    Check back soon for new additions
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {products.map((product) => (
+                                    <ProductCard key={product.id} product={product} />
                                 ))}
                             </div>
-                        )}
-                    </>
-                )}
-            </div>
+
+                            {/* Pagination */}
+                            {pagination && pagination.totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 mt-12">
+                                    {Array.from({ length: pagination.totalPages }).map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={cn(
+                                                "w-12 h-12 border-4 border-black rounded-xl font-black text-lg transition-all",
+                                                page === i + 1
+                                                    ? "bg-black text-white shadow-none"
+                                                    : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]",
+                                            )}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </main>
         </div>
     );
 }
@@ -189,10 +223,14 @@ function CollectionDetailContent() {
 export default function CollectionDetailPage() {
     return (
         <Suspense fallback={
-            <div className="container py-8">
-                <div className="animate-pulse">
-                    <div className="h-64 bg-[var(--brutal-gray-200)] mb-8" />
-                    <div className="h-10 w-64 bg-[var(--brutal-gray-200)] mb-4" />
+            <div className="min-h-screen bg-[#FAFAFA]">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="animate-pulse">
+                        <div className="h-8 w-48 bg-muted rounded-lg mb-6" />
+                        <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                            <div className="h-64 md:h-80 bg-muted" />
+                        </div>
+                    </div>
                 </div>
             </div>
         }>

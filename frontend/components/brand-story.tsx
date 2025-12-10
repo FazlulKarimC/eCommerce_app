@@ -9,42 +9,39 @@ export function BrandStory() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Images Stack */}
           <div className="relative">
-            {/* Main Image */}
-            <div className="relative z-10 border-4 border-black shadow-lg bg-white p-3">
+            <div className="relative z-10 border-4 border-black shadow-lg bg-white p-3 rounded-xl">
               <Image
-                src="/fashion-brand-story-urban-studio-creative-workspac.jpg"
+                src="/brand-story-studio.png"
                 alt="Our story"
                 width={600}
                 height={500}
-                className="w-full h-auto border-4 border-black"
+                className="w-full h-auto border-4 border-black rounded-lg"
               />
             </div>
 
-            {/* Secondary Image */}
-            <div className="absolute -bottom-8 -right-8 w-48 h-48 border-4 border-black shadow-md bg-white p-2 rotate-6 hidden md:block">
+            <div className="absolute -bottom-8 -right-8 w-48 h-48 border-4 border-black shadow-md bg-white p-2 rotate-6 hidden md:block rounded-lg">
               <Image
-                src="/fashion-designer-working-creative-process.jpg"
+                src="/designer-process.png"
                 alt="Creative process"
                 width={200}
                 height={200}
-                className="w-full h-full object-cover border-2 border-black"
+                className="w-full h-full object-cover border-2 border-black rounded-md"
               />
             </div>
 
-            {/* Decorative */}
-            <div className="absolute -top-6 -left-6 w-24 h-24 bg-secondary border-4 border-black -z-10 hidden md:block" />
+            <div className="absolute -top-6 -left-6 w-24 h-24 bg-secondary border-4 border-black -z-10 hidden md:block rounded-lg" />
           </div>
 
           {/* Content */}
           <div className="lg:pl-8">
-            <span className="inline-block bg-primary text-white font-mono text-sm font-bold px-4 py-2 border-4 border-black mb-6 -rotate-1">
+            <span className="inline-block bg-primary text-white font-mono text-sm font-bold px-4 py-2 border-4 border-black mb-6 -rotate-1 rounded-lg">
               OUR STORY
             </span>
 
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6">
               BORN FROM
               <br />
-              <span className="inline-block bg-black text-secondary px-3 py-1">REBELLION</span>
+              <span className="inline-block bg-black text-secondary px-3 py-1 rounded-lg">REBELLION</span>
             </h2>
 
             {/* Pull Quote */}
@@ -65,7 +62,7 @@ export function BrandStory() {
             <Button
               size="lg"
               variant="outline"
-              className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all"
+              className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all rounded-xl"
             >
               LEARN MORE
               <ArrowRight className="ml-2 h-5 w-5" />

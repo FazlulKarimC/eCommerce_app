@@ -18,8 +18,7 @@ export function NewsletterCTA() {
 
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
-          {/* Tag */}
-          <div className="inline-block bg-black text-secondary font-mono text-sm font-bold px-4 py-2 border-4 border-black mb-6 rotate-2">
+          <div className="inline-block bg-black text-secondary font-mono text-sm font-bold px-4 py-2 border-4 border-black mb-6 rotate-2 rounded-lg">
             JOIN THE MOVEMENT
           </div>
 
@@ -37,13 +36,13 @@ export function NewsletterCTA() {
               <Input
                 type="email"
                 placeholder="YOUR EMAIL"
-                className="w-full h-14 px-4 font-bold text-base border-4 border-black bg-white placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="w-full h-14 px-4 font-bold text-base border-4 border-black bg-white placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 rounded-lg"
               />
             </div>
             <Button
               type="submit"
               size="lg"
-              className="h-14 px-8 font-bold text-base bg-black text-secondary border-4 border-black shadow-[4px_4px_0_0_theme(colors.secondary)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all"
+              className="h-14 px-8 font-bold text-base bg-black text-secondary border-4 border-black shadow-[4px_4px_0_0_var(--color-secondary)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-lg"
             >
               SUBSCRIBE
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -63,9 +62,8 @@ export function NewsletterCTA() {
         }}
       />
 
-      {/* Decorative Elements */}
-      <div className="absolute top-1/2 left-8 w-16 h-16 border-4 border-black bg-secondary rotate-12 hidden lg:block" />
-      <div className="absolute top-1/3 right-12 w-12 h-12 bg-black -rotate-6 hidden lg:block" />
+      <div className="absolute top-1/2 left-8 w-16 h-16 border-4 border-black bg-secondary rotate-12 hidden lg:block rounded-lg" />
+      <div className="absolute top-1/3 right-12 w-12 h-12 bg-black -rotate-6 hidden lg:block rounded-lg" />
     </section>
   )
 }

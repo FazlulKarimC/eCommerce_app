@@ -27,7 +27,7 @@ export function SiteFooter() {
                 <Link
                   key={index}
                   href="#"
-                  className="w-10 h-10 border-2 border-white flex items-center justify-center hover:bg-secondary hover:text-black hover:border-secondary transition-colors"
+                  className="w-10 h-10 border-2 border-white flex items-center justify-center hover:bg-secondary hover:text-black hover:border-secondary transition-colors rounded-lg"
                 >
                   <Icon className="h-5 w-5" />
                 </Link>
