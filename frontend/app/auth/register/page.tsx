@@ -60,7 +60,7 @@ export default function RegisterPage() {
             await registerUser(data.name, data.email, data.password);
             router.push('/account');
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Registration failed. Please try again.');
+            setError(err.message || err.response?.data?.error || 'Registration failed. Please try again.');
         } finally {
             setIsSubmitting(false);
         }

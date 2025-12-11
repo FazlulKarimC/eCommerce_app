@@ -91,3 +91,14 @@ export const updateInventorySchema = z.object({
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type ProductQueryInput = z.infer<typeof productQuerySchema>;
+
+export const inventoryUpdateSchema = z.object({
+    variantId: z.string().min(1),
+    quantity: z.number().int().min(0, 'Quantity must be non-negative'),
+});
+
+export const inventoryAdjustmentSchema = z.object({
+    variantId: z.string().min(1),
+    adjustment: z.number().int(),
+});
+

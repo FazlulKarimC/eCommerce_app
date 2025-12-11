@@ -190,6 +190,7 @@ export interface User {
   name: string;
   role: 'ADMIN' | 'STAFF' | 'CUSTOMER';
   avatarUrl: string | null;
+  image?: string | null; // Better Auth uses 'image'
   emailVerified: boolean;
   createdAt: string;
   customer?: {

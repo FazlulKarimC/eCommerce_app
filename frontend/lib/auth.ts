@@ -1,18 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import api from './api';
-
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    role: 'ADMIN' | 'STAFF' | 'CUSTOMER';
-}
+import { authClient } from './auth-client';
+import { User } from './types';
 
 interface AuthState {
     user: User | null;
-    accessToken: string | null;
-    refreshToken: string | null;
     isLoading: boolean;
     isAuthenticated: boolean;
 
@@ -21,134 +12,87 @@ interface AuthState {
     register: (name: string, email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     setUser: (user: User | null) => void;
-    setTokens: (accessToken: string, refreshToken: string) => void;
-    clearAuth: () => void;
     checkAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
-    persist(
-        (set, get) => ({
-            user: null,
-            accessToken: null,
-            refreshToken: null,
-            isLoading: true,
-            isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set, get) => ({
+    user: null,
+    isLoading: true,
+    isAuthenticated: false,
 
-            login: async (email: string, password: string) => {
-                const response = await api.post('/auth/login', { email, password });
-                const { user, accessToken, refreshToken } = response.data;
+    login: async (email: string, password: string) => {
+        set({ isLoading: true });
+        const { data, error } = await authClient.signIn.email({
+            email,
+            password,
+        });
 
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-
-                set({
-                    user,
-                    accessToken,
-                    refreshToken,
-                    isAuthenticated: true,
-                    isLoading: false,
-                });
-
-                // Merge guest cart if exists
-                const sessionId = localStorage.getItem('sessionId');
-                if (sessionId) {
-                    try {
-                        await api.post('/cart/merge', { sessionId });
-                        localStorage.removeItem('sessionId');
-                    } catch {
-                        // Ignore merge errors
-                    }
-                }
-            },
-
-            register: async (name: string, email: string, password: string) => {
-                const response = await api.post('/auth/register', { name, email, password });
-                const { user, accessToken, refreshToken } = response.data;
-
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-
-                set({
-                    user,
-                    accessToken,
-                    refreshToken,
-                    isAuthenticated: true,
-                    isLoading: false,
-                });
-            },
-
-            logout: async () => {
-                const { refreshToken } = get();
-
-                try {
-                    if (refreshToken) {
-                        await api.post('/auth/logout', { refreshToken });
-                    }
-                } catch {
-                    // Ignore logout errors
-                }
-
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-
-                set({
-                    user: null,
-                    accessToken: null,
-                    refreshToken: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
-            },
-
-            setUser: (user) => set({ user, isAuthenticated: !!user }),
-
-            setTokens: (accessToken, refreshToken) => {
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-                set({ accessToken, refreshToken });
-            },
-
-            clearAuth: () => {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                set({
-                    user: null,
-                    accessToken: null,
-                    refreshToken: null,
-                    isAuthenticated: false,
-                });
-            },
-
-            checkAuth: async () => {
-                const accessToken = localStorage.getItem('accessToken');
-
-                if (!accessToken) {
-                    set({ isLoading: false, isAuthenticated: false });
-                    return;
-                }
-
-                try {
-                    const response = await api.get('/auth/me');
-                    set({
-                        user: response.data,
-                        accessToken,
-                        refreshToken: localStorage.getItem('refreshToken'),
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
-                } catch {
-                    get().clearAuth();
-                    set({ isLoading: false });
-                }
-            },
-        }),
-        {
-            name: 'auth-storage',
-            partialize: (state) => ({
-                user: state.user,
-                isAuthenticated: state.isAuthenticated,
-            }),
+        if (error) {
+            set({ isLoading: false });
+            throw error;
         }
-    )
-);
+
+        // Merge guest cart if checkAuth logic handles it or we do it here
+        // For now, simple state update
+        if (data) {
+            // We need to fetch full profile or trust session data
+            // session.user might simpler than full User type
+            // Let's rely on checkAuth to normalize the user state
+            await get().checkAuth();
+        }
+    },
+
+    register: async (name: string, email: string, password: string) => {
+        set({ isLoading: true });
+        const { data, error } = await authClient.signUp.email({
+            email,
+            password,
+            name,
+        });
+
+        if (error) {
+            set({ isLoading: false });
+            throw error;
+        }
+
+        if (data) {
+            await get().checkAuth();
+        }
+    },
+
+    logout: async () => {
+        set({ isLoading: true });
+        await authClient.signOut();
+        set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+        });
+        localStorage.removeItem('sessionId'); // cleanup guest session logic if any
+    },
+
+    setUser: (user) => set({ user, isAuthenticated: !!user }),
+
+    checkAuth: async () => {
+        set({ isLoading: true });
+        const { data } = await authClient.getSession();
+
+        if (data?.user) {
+            // Map better-auth user to our User type
+            // Note: better-auth user might miss some profile fields if not fetched
+            // effectively acting as "me"
+            const user = data.user as unknown as User;
+            set({
+                user,
+                isAuthenticated: true,
+                isLoading: false,
+            });
+        } else {
+            set({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+            });
+        }
+    },
+}));

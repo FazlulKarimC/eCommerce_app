@@ -14,7 +14,7 @@ import discountsRouter from './discounts';
 const router = Router();
 
 // API Routes
-router.use('/auth', authRouter);
+// router.use('/auth', authRouter); // Legacy auth routes replaced by Better Auth
 router.use('/products', productsRouter);
 router.use('/collections', collectionsRouter);
 router.use('/categories', categoriesRouter);

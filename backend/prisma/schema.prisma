@@ -50,51 +50,71 @@ enum ProductStatus {
 
 // ============ USER & AUTH ============
 
-model User {
-  id             String          @id @default(cuid())
-  email          String          @unique
-  passwordHash   String?
-  name           String
-  role           UserRole        @default(CUSTOMER)
-  emailVerified  Boolean         @default(false)
-  avatarUrl      String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  deletedAt      DateTime?
+// ============ USER & AUTH ============
 
-  customer       Customer?
-  sessions       Session[]
-  passwordResets PasswordReset[]
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  emailVerified Boolean   @default(false)
+  image         String?   @map("avatarUrl") // Map to better-auth "image" field
+  passwordHash  String? // Existing field for credentials auth
+  role          UserRole  @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  customer Customer?
+  sessions Session[]
+  accounts Account[]
 
   @@index([email])
   @@index([role])
+  @@map("user") // Optional: map to lowercase table name if preferred, keeping default for now
 }
 
 model Session {
   id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
   expiresAt DateTime
+  token     String   @unique
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([token])
   @@index([userId])
 }
 
-model PasswordReset {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([token])
+  @@index([userId])
 }
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 
 // ============ CUSTOMER ============
 

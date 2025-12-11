@@ -9,6 +9,8 @@ import {
   productQuerySchema,
   productIdSchema,
   productSlugSchema,
+  inventoryUpdateSchema,
+  inventoryAdjustmentSchema,
 } from '../validators/product.validator';
 
 const router = Router();
@@ -143,6 +145,7 @@ router.patch(
   '/:id/inventory',
   authenticate,
   requireStaff,
+  validateBody(inventoryUpdateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { variantId, quantity } = req.body;
@@ -159,6 +162,7 @@ router.post(
   '/:id/inventory/adjust',
   authenticate,
   requireStaff,
+  validateBody(inventoryAdjustmentSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { variantId, adjustment } = req.body;

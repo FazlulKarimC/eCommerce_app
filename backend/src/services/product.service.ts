@@ -314,7 +314,7 @@ export class ProductService {
      * Get product reviews
      */
     async getReviews(productId: string, page = 1, limit = 10) {
-        const [reviews, total] = await Promise.all([
+        const [reviews, total, avgRating, distribution] = await Promise.all([
             prisma.review.findMany({
                 where: { productId, approved: true },
                 include: {
@@ -329,17 +329,32 @@ export class ProductService {
                 take: limit,
             }),
             prisma.review.count({ where: { productId, approved: true } }),
+            prisma.review.aggregate({
+                where: { productId, approved: true },
+                _avg: { rating: true },
+            }),
+            prisma.review.groupBy({
+                by: ['rating'],
+                where: { productId, approved: true },
+                _count: { rating: true },
+            }),
         ]);
 
-        const avgRating = await prisma.review.aggregate({
-            where: { productId, approved: true },
-            _avg: { rating: true },
+        // Format distribution
+        const ratingDistribution = Array.from({ length: 5 }, (_, i) => {
+            const rating = 5 - i;
+            const item = distribution.find((d) => d.rating === rating);
+            return { rating, count: item?._count.rating || 0 };
         });
 
         return {
             reviews,
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-            averageRating: avgRating._avg.rating || 0,
+            stats: {
+                averageRating: avgRating._avg.rating || 0,
+                totalReviews: total,
+                ratingDistribution,
+            },
         };
     }
 

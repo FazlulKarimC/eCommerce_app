@@ -31,7 +31,8 @@ async function main() {
     await prisma.discountCode.deleteMany();
     await prisma.address.deleteMany();
     await prisma.customer.deleteMany();
-    await prisma.passwordReset.deleteMany();
+    await prisma.verification.deleteMany();
+    await prisma.account.deleteMany();
     await prisma.session.deleteMany();
     await prisma.user.deleteMany();
     await prisma.storeSettings.deleteMany();
@@ -90,16 +91,34 @@ async function main() {
             emailVerified: true,
         },
     });
+    // Create Better Auth Account for admin
+    await prisma.account.create({
+        data: {
+            userId: admin.id,
+            accountId: admin.id,
+            providerId: 'credential',
+            password: adminPassword,
+        },
+    });
 
     // Create staff user
     const staffPassword = await bcrypt.hash('Staff123!', 12);
-    await prisma.user.create({
+    const staff = await prisma.user.create({
         data: {
             email: 'staff@brutaliststore.com',
             passwordHash: staffPassword,
             name: 'Staff User',
             role: UserRole.STAFF,
             emailVerified: true,
+        },
+    });
+    // Create Better Auth Account for staff
+    await prisma.account.create({
+        data: {
+            userId: staff.id,
+            accountId: staff.id,
+            providerId: 'credential',
+            password: staffPassword,
         },
     });
 
@@ -134,6 +153,15 @@ async function main() {
             },
         },
         include: { customer: true },
+    });
+    // Create Better Auth Account for customer
+    await prisma.account.create({
+        data: {
+            userId: customerUser.id,
+            accountId: customerUser.id,
+            providerId: 'credential',
+            password: customerPassword,
+        },
     });
 
     // Create categories

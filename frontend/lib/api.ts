@@ -7,17 +7,12 @@ export const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    // withCredentials: true, // Disabled temporarily for debugging
+    withCredentials: true,
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add session ID
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
         // Add session ID for guest cart
         const sessionId = localStorage.getItem('sessionId');
         if (sessionId) {
@@ -27,39 +22,13 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle 401s (optional specific handling)
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
-            try {
-                const refreshToken = localStorage.getItem('refreshToken');
-                if (refreshToken) {
-                    const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-                        refreshToken,
-                    });
-
-                    const { accessToken, refreshToken: newRefreshToken } = response.data;
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('refreshToken', newRefreshToken);
-
-                    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-                    return api(originalRequest);
-                }
-            } catch {
-                // Refresh failed, clear tokens and redirect to login
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                if (typeof window !== 'undefined') {
-                    window.location.href = '/auth/login';
-                }
-            }
+        if (error.response?.status === 401) {
+            // Optional: Redirect to login or handled by component
         }
-
         return Promise.reject(error);
     }
 );

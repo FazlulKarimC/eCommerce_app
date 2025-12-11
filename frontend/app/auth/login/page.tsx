@@ -40,7 +40,7 @@ export default function LoginPage() {
             await login(data.email, data.password);
             router.push('/account');
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Invalid email or password');
+            setError(err.message || err.response?.data?.error || 'Invalid email or password');
         } finally {
             setIsSubmitting(false);
         }

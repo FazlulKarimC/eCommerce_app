@@ -1,19 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/database';
-import { verifyAccessToken, TokenPayload } from '../utils/jwt';
+import { auth } from '../config/auth';
+import { fromNodeHeaders } from 'better-auth/node';
 
 // Extend Express Request to include user
 declare global {
     namespace Express {
         interface Request {
-            user?: TokenPayload & { sessionId?: string };
+            user?: {
+                userId: string;
+                email: string;
+                role: any; // Role type will come from better-auth schema
+                sessionId?: string;
+            };
         }
     }
 }
 
 /**
- * Authentication middleware - validates JWT token
- * Sets req.user if token is valid
+ * Authentication middleware - validates Better Auth session
+ * Sets req.user if session is valid
  */
 export async function authenticate(
     req: Request,
@@ -21,43 +27,20 @@ export async function authenticate(
     next: NextFunction
 ): Promise<void> {
     try {
-        const authHeader = req.headers.authorization;
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(req.headers)
+        });
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        if (!session) {
             res.status(401).json({ error: 'Authentication required' });
             return;
         }
 
-        const token = authHeader.split(' ')[1];
-        const payload = verifyAccessToken(token);
-
-        if (!payload) {
-            res.status(401).json({ error: 'Invalid or expired token' });
-            return;
-        }
-
-        // Verify user still exists and is not deleted
-        const user = await prisma.user.findFirst({
-            where: {
-                id: payload.userId,
-                deletedAt: null,
-            },
-            select: {
-                id: true,
-                email: true,
-                role: true,
-            },
-        });
-
-        if (!user) {
-            res.status(401).json({ error: 'User not found' });
-            return;
-        }
-
         req.user = {
-            userId: user.id,
-            email: user.email,
-            role: user.role,
+            userId: session.user.id,
+            email: session.user.email,
+            role: (session.user as any).role,
+            sessionId: session.session.id
         };
 
         next();
@@ -69,41 +52,26 @@ export async function authenticate(
 /**
  * Optional authentication - sets user if token present, but doesn't require it
  */
+/**
+ * Optional authentication - sets user if token present, but doesn't require it
+ */
 export async function optionalAuth(
     req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {
     try {
-        const authHeader = req.headers.authorization;
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(req.headers)
+        });
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return next();
-        }
-
-        const token = authHeader.split(' ')[1];
-        const payload = verifyAccessToken(token);
-
-        if (payload) {
-            const user = await prisma.user.findFirst({
-                where: {
-                    id: payload.userId,
-                    deletedAt: null,
-                },
-                select: {
-                    id: true,
-                    email: true,
-                    role: true,
-                },
-            });
-
-            if (user) {
-                req.user = {
-                    userId: user.id,
-                    email: user.email,
-                    role: user.role,
-                };
-            }
+        if (session) {
+            req.user = {
+                userId: session.user.id,
+                email: session.user.email,
+                role: (session.user as any).role,
+                sessionId: session.session.id
+            };
         }
 
         next();

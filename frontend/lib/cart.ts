@@ -3,6 +3,9 @@ import { persist } from 'zustand/middleware';
 import api from './api';
 import { generateSessionId } from './utils';
 
+// Debounce timeouts
+const updateTimeouts: Record<string, NodeJS.Timeout> = {};
+
 export interface CartItem {
     id: string;
     variantId: string;
@@ -94,6 +97,11 @@ export const useCartStore = create<CartState>()(
                 const { cart } = get();
                 if (!cart) return;
 
+                // Clear existing timeout
+                if (updateTimeouts[itemId]) {
+                    clearTimeout(updateTimeouts[itemId]);
+                }
+
                 // Optimistic update
                 const updatedItems = cart.items.map((item) =>
                     item.id === itemId
@@ -112,13 +120,17 @@ export const useCartStore = create<CartState>()(
                     },
                 });
 
-                try {
-                    const response = await api.patch(`/cart/items/${itemId}`, { quantity });
-                    set({ cart: response.data });
-                } catch (error) {
-                    // Revert on error
-                    get().fetchCart();
-                }
+                // Debounce API call (500ms)
+                updateTimeouts[itemId] = setTimeout(async () => {
+                    try {
+                        const response = await api.patch(`/cart/items/${itemId}`, { quantity });
+                        set({ cart: response.data });
+                        delete updateTimeouts[itemId];
+                    } catch (error) {
+                        // Revert on error
+                        get().fetchCart();
+                    }
+                }, 500);
             },
 
             removeItem: async (itemId: string) => {

@@ -39,6 +39,11 @@ if (env.isDevelopment) {
 }
 
 // API Routes
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./config/auth";
+
+app.all("/api/auth/*path", toNodeHandler(auth));
+
 app.use('/api', routes);
 
 // Error handling

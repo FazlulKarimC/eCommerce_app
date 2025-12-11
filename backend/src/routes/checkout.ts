@@ -1,15 +1,18 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { orderService } from '../services/order.service';
 import { cartService } from '../services/cart.service';
+import { prisma } from '../config/database';
 import { validateBody } from '../middleware/validate';
 import { optionalAuth } from '../middleware/auth';
 import { checkoutSchema, applyDiscountSchema } from '../validators';
+import { ApiError } from '../middleware/errorHandler';
 
 const router = Router();
 
 // Apply discount code (check validity)
 router.post(
     '/discount',
+    optionalAuth,
     validateBody(applyDiscountSchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -79,8 +82,7 @@ router.post(
                     error.message.includes('Card declined') ||
                     error.message.includes('discount')
                 ) {
-                    res.status(400).json({ error: error.message });
-                    return;
+                    throw new ApiError(400, error.message);
                 }
             }
             next(error);
@@ -118,7 +120,6 @@ router.post(
             }
 
             // Get store settings
-            const { prisma } = await import('../config/database');
             const settings = await prisma.storeSettings.findUnique({
                 where: { id: 'default' },
             });
