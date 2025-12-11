@@ -2,6 +2,7 @@ import { prisma } from '../config/database';
 import { CheckoutInput } from '../validators/order.validator';
 import { generateOrderNumber } from '../utils/helpers';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { emailService } from './email.service';
 
 export class OrderService {
     /**
@@ -165,10 +166,34 @@ export class OrderService {
             return order;
         });
 
-        // Log mock email
-        console.log(`[MOCK EMAIL] Order confirmation sent to ${input.email} for order ${order.orderNumber}`);
+        // Get the full order with all data for email
+        const fullOrder = await this.findById(order.id);
 
-        return this.findById(order.id);
+        // Send order confirmation email
+        const emailData = {
+            orderNumber: fullOrder.orderNumber,
+            email: input.email,
+            customerName: input.shippingAddress.firstName,
+            items: fullOrder.items.map((item: any) => ({
+                productTitle: item.productTitle,
+                variantTitle: item.variantTitle,
+                quantity: item.quantity,
+                price: parseFloat(item.price.toString()),
+            })),
+            subtotal,
+            discount,
+            shippingCost: finalShipping,
+            tax,
+            total,
+            shippingAddress: input.shippingAddress,
+        };
+
+        // Send email asynchronously (don't block checkout response)
+        emailService.sendOrderConfirmation(emailData).catch((err) => {
+            console.error('[EMAIL] Failed to send order confirmation:', err);
+        });
+
+        return fullOrder;
     }
 
     /**

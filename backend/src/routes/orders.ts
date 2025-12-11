@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { orderService } from '../services/order.service';
+import { emailService } from '../services/email.service';
 import { validateBody, validateParams, validateQuery } from '../middleware/validate';
 import { authenticate, optionalAuth } from '../middleware/auth';
 import { requireStaff } from '../middleware/requireRole';
@@ -135,8 +136,22 @@ router.post(
     try {
       const order = await orderService.addFulfillment(req.params.id, req.body);
 
-      // Log mock email
-      console.log(`[MOCK EMAIL] Shipping notification sent for order ${order.orderNumber}`);
+      // Send shipping notification email
+      const customerName = order.shippingAddress
+        ? order.shippingAddress.firstName
+        : order.email.split('@')[0];
+
+      emailService.sendShippingNotification({
+        orderNumber: order.orderNumber,
+        email: order.email,
+        customerName,
+        carrier: req.body.carrier,
+        trackingNumber: req.body.trackingNumber,
+        trackingUrl: req.body.trackingUrl,
+        estimatedDelivery: req.body.estimatedDelivery,
+      }).catch((err) => {
+        console.error('[EMAIL] Failed to send shipping notification:', err);
+      });
 
       res.json(order);
     } catch (error) {

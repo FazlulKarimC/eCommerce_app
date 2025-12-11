@@ -1,0 +1,277 @@
+'use client';
+
+import { useState, Suspense } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ChevronDown, FolderTree, ArrowLeft, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { useCategory, useProducts } from '@/lib/hooks';
+import { ProductCard } from '@/components/product/ProductCard';
+import { cn } from '@/lib/utils';
+
+const sortOptions = [
+    { label: 'Newest', value: 'createdAt-desc' },
+    { label: 'Price: Low to High', value: 'price-asc' },
+    { label: 'Price: High to Low', value: 'price-desc' },
+    { label: 'Name: A-Z', value: 'title-asc' },
+];
+
+function CategoryDetailContent() {
+    const params = useParams();
+    const slug = params?.slug as string;
+
+    const [sortBy, setSortBy] = useState('createdAt-desc');
+    const [page, setPage] = useState(1);
+
+    const [sortField, sortOrder] = sortBy.split('-') as ['title' | 'price' | 'createdAt', 'asc' | 'desc'];
+
+    const { data: category, isLoading: isLoadingCategory } = useCategory(slug);
+    const { data: productsData, isLoading: isLoadingProducts } = useProducts({
+        page,
+        limit: 12,
+        category: slug,
+        sort: sortField,
+        order: sortOrder,
+    });
+
+    const products = productsData?.products || [];
+    const pagination = productsData?.pagination;
+
+    if (isLoadingCategory) {
+        return (
+            <div className="min-h-screen bg-[#FAFAFA]">
+                <main className="py-8">
+                    <div className="container mx-auto px-4">
+                        <div className="animate-pulse">
+                            <div className="h-8 w-48 bg-muted rounded-lg mb-6" />
+                            <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                <div className="h-64 md:h-80 bg-muted" />
+                            </div>
+                            <div className="h-10 w-64 bg-muted rounded-lg mb-4" />
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    if (!category) {
+        return (
+            <div className="min-h-screen bg-[#FAFAFA]">
+                <main className="container mx-auto px-4 py-20 text-center">
+                    <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-[#FFEB3B] border-4 border-black rounded-xl flex items-center justify-center">
+                            <FolderTree className="w-10 h-10" />
+                        </div>
+                        <h1 className="text-3xl font-black mb-2">CATEGORY NOT FOUND</h1>
+                        <p className="text-muted-foreground mb-8">The category you're looking for doesn't exist.</p>
+                        <Link
+                            href="/categories"
+                            className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+                        >
+                            VIEW ALL CATEGORIES
+                        </Link>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-[#FAFAFA]">
+            <main className="py-8">
+                <div className="container mx-auto px-4">
+                    {/* Breadcrumb */}
+                    <nav className="mb-6 flex items-center gap-2 text-sm">
+                        <Link
+                            href="/categories"
+                            className="inline-flex items-center gap-2 font-bold hover:text-[#FF3B30] transition-colors group"
+                        >
+                            <div className="w-8 h-8 bg-white border-3 border-black rounded-lg flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-[3px] group-hover:translate-y-[3px] transition-all">
+                                <ArrowLeft className="w-4 h-4" />
+                            </div>
+                            <span>Categories</span>
+                        </Link>
+                        {category.parent && (
+                            <>
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                <Link
+                                    href={`/categories/${category.parent.slug}`}
+                                    className="font-bold hover:text-[#FF3B30] transition-colors"
+                                >
+                                    {category.parent.name}
+                                </Link>
+                            </>
+                        )}
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">{category.name}</span>
+                    </nav>
+
+                    {/* Category Header */}
+                    <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="relative h-64 md:h-80 bg-black">
+                            {category.image ? (
+                                <Image
+                                    src={category.image}
+                                    alt={category.name}
+                                    fill
+                                    className="object-cover opacity-70"
+                                    priority
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-[#FF3B30] to-[#FF9500]">
+                                    <FolderTree className="w-24 h-24 text-white opacity-50" />
+                                </div>
+                            )}
+                            {/* Overlay */}
+                            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
+
+                            {/* Content */}
+                            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                                <span className="inline-block bg-[#FFEB3B] text-black font-mono text-xs font-bold px-3 py-1.5 border-3 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -rotate-2 mb-4">
+                                    CATEGORY
+                                </span>
+                                <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter">
+                                    {category.name.toUpperCase()}
+                                </h1>
+                                {category.description && (
+                                    <p className="text-white/80 mt-3 max-w-2xl text-lg">{category.description}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Subcategories */}
+                    {category.children && category.children.length > 0 && (
+                        <div className="mb-8">
+                            <h2 className="font-black text-xl mb-4">SUBCATEGORIES</h2>
+                            <div className="flex flex-wrap gap-3">
+                                {category.children.map((child: any) => (
+                                    <Link
+                                        key={child.id}
+                                        href={`/categories/${child.slug}`}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border-3 border-black rounded-xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+                                    >
+                                        <FolderTree className="w-4 h-4" />
+                                        {child.name}
+                                        {child._count?.products !== undefined && (
+                                            <span className="bg-[#FFEB3B] text-xs font-mono px-2 py-0.5 rounded border-2 border-black">
+                                                {child._count.products}
+                                            </span>
+                                        )}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Toolbar */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                        <div className="flex items-center gap-3">
+                            <span className="bg-black text-white font-mono text-sm font-bold px-4 py-2 rounded-lg border-3 border-black">
+                                {pagination?.total || products.length} PRODUCTS
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => {
+                                        setSortBy(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    className="appearance-none bg-white border-4 border-black rounded-xl px-4 py-3 pr-12 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all cursor-pointer focus:outline-none focus:ring-0"
+                                >
+                                    {sortOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
+                            </div>
+
+                            <button className="flex items-center gap-2 bg-[#FFEB3B] border-4 border-black rounded-xl px-4 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all">
+                                <SlidersHorizontal className="w-4 h-4" />
+                                FILTERS
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Products Grid */}
+                    {isLoadingProducts ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="border-4 border-black rounded-2xl bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-pulse overflow-hidden">
+                                    <div className="aspect-square bg-muted" />
+                                    <div className="p-4 space-y-2">
+                                        <div className="h-4 bg-muted rounded w-3/4" />
+                                        <div className="h-4 bg-muted rounded w-1/2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : products.length === 0 ? (
+                        <div className="text-center py-20">
+                            <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                <FolderTree className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                                <p className="text-xl font-black">No products in this category</p>
+                                <p className="text-muted-foreground mt-2">
+                                    Check back soon for new additions
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {products.map((product) => (
+                                    <ProductCard key={product.id} product={product} />
+                                ))}
+                            </div>
+
+                            {/* Pagination */}
+                            {pagination && pagination.totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 mt-12">
+                                    {Array.from({ length: pagination.totalPages }).map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={cn(
+                                                "w-12 h-12 border-4 border-black rounded-xl font-black text-lg transition-all",
+                                                page === i + 1
+                                                    ? "bg-black text-white shadow-none"
+                                                    : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]",
+                                            )}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </main>
+        </div>
+    );
+}
+
+export default function CategoryDetailPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#FAFAFA]">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="animate-pulse">
+                        <div className="h-8 w-48 bg-muted rounded-lg mb-6" />
+                        <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                            <div className="h-64 md:h-80 bg-muted" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }>
+            <CategoryDetailContent />
+        </Suspense>
+    );
+}

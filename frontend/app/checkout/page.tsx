@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, CreditCard, Loader2, ShoppingBag, Check } from 'lucide-react';
+import { ArrowLeft, CreditCard, Loader2, ShoppingBag, Tag, X, Check } from 'lucide-react';
 import { useCartStore } from '@/lib/cart';
 import { useAuthStore } from '@/lib/auth';
 import { formatPrice, cn } from '@/lib/utils';
@@ -32,12 +32,33 @@ const checkoutSchema = z.object({
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
+interface CheckoutPreview {
+  subtotal: number;
+  discount: number;
+  discountType: string | null;
+  shipping: number;
+  freeShippingThreshold: number | null;
+  tax: number;
+  taxRate: number;
+  total: number;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCartStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+
+  // Checkout preview state
+  const [preview, setPreview] = useState<CheckoutPreview | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   const {
     register,
@@ -52,6 +73,54 @@ export default function CheckoutPage() {
       country: 'US',
     },
   });
+
+  // Fetch checkout preview on mount and when discount changes
+  useEffect(() => {
+    const fetchPreview = async () => {
+      if (!cart || cart.items.length === 0) return;
+      
+      setIsLoadingPreview(true);
+      try {
+        const response = await api.post('/checkout/preview', {
+          discountCode: appliedDiscount || undefined,
+        });
+        setPreview(response.data);
+      } catch (err) {
+        console.error('Failed to fetch checkout preview:', err);
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    };
+
+    fetchPreview();
+  }, [cart, appliedDiscount]);
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    
+    setIsApplyingDiscount(true);
+    setDiscountError(null);
+
+    try {
+      const response = await api.post('/checkout/discount', {
+        code: discountCode.trim(),
+      });
+
+      if (response.data.valid) {
+        setAppliedDiscount(discountCode.trim().toUpperCase());
+        setDiscountCode('');
+      }
+    } catch (err: any) {
+      setDiscountError(err.response?.data?.error || 'Invalid discount code');
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountError(null);
+  };
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -92,6 +161,7 @@ export default function CheckoutPage() {
           cvv: data.cvv,
           cardholderName: data.cardholderName,
         },
+        discountCode: appliedDiscount || undefined,
       });
 
       if (response.data.order) {
@@ -236,7 +306,7 @@ export default function CheckoutPage() {
                     Processing...
                   </>
                 ) : (
-                  <>Complete Order - {formatPrice(cart.subtotal)}</>
+                  <>Complete Order - {formatPrice(preview?.total || cart.subtotal)}</>
                 )}
               </button>
             </form>
@@ -247,7 +317,7 @@ export default function CheckoutPage() {
             <div className="brutal-card p-6 sticky top-24">
               <h2 className="text-xl font-black mb-6">Order Summary</h2>
 
-              <div className="space-y-4 max-h-80 overflow-y-auto mb-6">
+              <div className="space-y-4 max-h-60 overflow-y-auto mb-6">
                 {cart.items.map((item) => (
                   <div key={item.id} className="flex gap-4">
                     <div className="w-16 h-16 bg-(--brutal-gray-100) border-2 border-(--brutal-black) relative overflow-hidden shrink-0">
@@ -268,18 +338,97 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Discount Code */}
+              <div className="border-t-2 border-(--brutal-gray-200) pt-4 mb-4">
+                <label className="font-bold text-sm block mb-2 flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Discount Code
+                </label>
+                {appliedDiscount ? (
+                  <div className="flex items-center justify-between bg-(--brutal-green) bg-opacity-20 border-2 border-(--brutal-green) p-3">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-(--brutal-green)" />
+                      <span className="font-bold">{appliedDiscount}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveDiscount}
+                      className="text-(--brutal-gray-500) hover:text-(--brutal-red)"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                      placeholder="Enter code"
+                      className="brutal-input flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyDiscount}
+                      disabled={isApplyingDiscount || !discountCode.trim()}
+                      className="brutal-btn brutal-btn-dark px-4"
+                    >
+                      {isApplyingDiscount ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {discountError && (
+                  <p className="text-(--brutal-red) text-sm mt-2">{discountError}</p>
+                )}
+              </div>
+
+              {/* Order Totals */}
               <div className="border-t-2 border-(--brutal-gray-200) pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-bold">{formatPrice(cart.subtotal)}</span>
+                  <span className="font-bold">{formatPrice(preview?.subtotal || cart.subtotal)}</span>
                 </div>
+
+                {preview && preview.discount > 0 && (
+                  <div className="flex justify-between text-(--brutal-green)">
+                    <span>Discount</span>
+                    <span className="font-bold">-{formatPrice(preview.discount)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="text-(--brutal-gray-500)">Calculated</span>
+                  {isLoadingPreview ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : preview ? (
+                    <span className={preview.shipping === 0 ? 'text-(--brutal-green) font-bold' : ''}>
+                      {preview.shipping === 0 ? 'FREE' : formatPrice(preview.shipping)}
+                    </span>
+                  ) : (
+                    <span className="text-(--brutal-gray-500)">Calculated</span>
+                  )}
                 </div>
-                <div className="flex justify-between text-lg pt-2 border-t">
+
+                {preview && preview.freeShippingThreshold && preview.shipping > 0 && (
+                  <p className="text-xs text-(--brutal-gray-500)">
+                    Free shipping on orders over {formatPrice(preview.freeShippingThreshold)}
+                  </p>
+                )}
+
+                {preview && preview.tax > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax ({preview.taxRate}%)</span>
+                    <span>{formatPrice(preview.tax)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-lg pt-2 border-t-2 border-(--brutal-gray-200)">
                   <span className="font-black">Total</span>
-                  <span className="font-black">{formatPrice(cart.subtotal)}</span>
+                  {isLoadingPreview ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <span className="font-black">{formatPrice(preview?.total || cart.subtotal)}</span>
+                  )}
                 </div>
               </div>
             </div>
