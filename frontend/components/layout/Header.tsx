@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/auth';
 import { useCartStore } from '@/lib/cart';
+import { Badge } from '@/components/ui';
 
 const navLinks = [
     { href: '/', label: 'Home' },
@@ -46,9 +47,9 @@ export function Header() {
     return (
         <header
             className={cn(
-                'fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b-[var(--border-width)]',
+                'fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b-4',
                 isScrolled
-                    ? 'bg-[var(--brutal-white)] border-[var(--brutal-black)] shadow-[var(--shadow-sm)]'
+                    ? 'bg-white border-black shadow-[0_4px_0px_#000]'
                     : 'bg-transparent border-transparent'
             )}
         >
@@ -57,7 +58,7 @@ export function Header() {
                     {/* Logo */}
                     <Link
                         href="/"
-                        className="text-2xl font-black tracking-tight hover:text-[var(--brutal-red)] transition-colors"
+                        className="text-2xl font-black tracking-tight hover:text-red-500 transition-colors"
                     >
                         BRUTALIST
                     </Link>
@@ -70,24 +71,24 @@ export function Header() {
                                 href={link.href}
                                 className={cn(
                                     'text-sm font-bold uppercase tracking-wider relative py-1',
-                                    'hover:text-[var(--brutal-red)] transition-colors',
-                                    pathname === link.href && 'text-[var(--brutal-red)]',
-                                    link.highlight && 'text-[var(--brutal-red)]'
+                                    'hover:text-red-500 transition-colors',
+                                    pathname === link.href && 'text-red-500',
+                                    link.highlight && 'text-red-500'
                                 )}
                             >
                                 {link.label}
                                 {pathname === link.href && (
-                                    <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--brutal-red)]" />
+                                    <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-red-500" />
                                 )}
                             </Link>
                         ))}
                     </nav>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                         {/* Search */}
                         <button
-                            className="p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                            className="p-2 hover:bg-yellow-400 transition-colors rounded-lg"
                             aria-label="Search"
                         >
                             <Search className="w-5 h-5" />
@@ -96,8 +97,8 @@ export function Header() {
                         {/* Wishlist */}
                         {isAuthenticated && (
                             <Link
-                                href="/wishlist"
-                                className="p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                                href="/account/wishlist"
+                                className="p-2 hover:bg-yellow-400 transition-colors rounded-lg"
                                 aria-label="Wishlist"
                             >
                                 <Heart className="w-5 h-5" />
@@ -107,7 +108,7 @@ export function Header() {
                         {/* Account */}
                         <Link
                             href={isAuthenticated ? '/account' : '/auth/login'}
-                            className="p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                            className="p-2 hover:bg-yellow-400 transition-colors rounded-lg"
                             aria-label="Account"
                         >
                             <User className="w-5 h-5" />
@@ -116,12 +117,12 @@ export function Header() {
                         {/* Cart */}
                         <button
                             onClick={toggleCart}
-                            className="relative p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                            className="relative p-2 hover:bg-yellow-400 transition-colors rounded-lg"
                             aria-label="Cart"
                         >
                             <ShoppingBag className="w-5 h-5" />
                             {cart && cart.itemCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--brutal-red)] text-white text-xs font-bold flex items-center justify-center">
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full border-2 border-black">
                                     {cart.itemCount}
                                 </span>
                             )}
@@ -130,7 +131,7 @@ export function Header() {
                         {/* Mobile Menu Toggle */}
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="md:hidden p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                            className="md:hidden p-2 hover:bg-yellow-400 transition-colors rounded-lg"
                             aria-label="Menu"
                         >
                             {isMenuOpen ? (
@@ -144,7 +145,7 @@ export function Header() {
 
                 {/* Mobile Menu */}
                 {isMenuOpen && (
-                    <div className="md:hidden absolute top-full left-0 right-0 bg-[var(--brutal-white)] border-b-4 border-[var(--brutal-black)]">
+                    <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b-4 border-black shadow-[0_4px_0px_#000]">
                         <nav className="container py-6 flex flex-col gap-4">
                             {navLinks.map((link) => (
                                 <Link
@@ -152,26 +153,26 @@ export function Header() {
                                     href={link.href}
                                     className={cn(
                                         'text-lg font-bold uppercase tracking-wider py-2',
-                                        'hover:text-[var(--brutal-red)] transition-colors',
-                                        pathname === link.href && 'text-[var(--brutal-red)]',
-                                        link.highlight && 'text-[var(--brutal-red)]'
+                                        'hover:text-red-500 transition-colors',
+                                        pathname === link.href && 'text-red-500',
+                                        link.highlight && 'text-red-500'
                                     )}
                                 >
                                     {link.label}
                                 </Link>
                             ))}
-                            <div className="h-px bg-[var(--brutal-gray-300)] my-2" />
+                            <div className="h-px bg-gray-300 my-2" />
                             {isAuthenticated ? (
                                 <>
-                                    <Link href="/account" className="text-lg font-bold py-2">
+                                    <Link href="/account" className="text-lg font-bold py-2 hover:text-red-500 transition-colors">
                                         My Account
                                     </Link>
-                                    <Link href="/orders" className="text-lg font-bold py-2">
+                                    <Link href="/account/orders" className="text-lg font-bold py-2 hover:text-red-500 transition-colors">
                                         My Orders
                                     </Link>
                                 </>
                             ) : (
-                                <Link href="/auth/login" className="text-lg font-bold py-2">
+                                <Link href="/auth/login" className="text-lg font-bold py-2 hover:text-red-500 transition-colors">
                                     Sign In
                                 </Link>
                             )}

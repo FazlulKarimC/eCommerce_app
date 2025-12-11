@@ -5,6 +5,7 @@ import {
     Facebook,
     Mail
 } from 'lucide-react';
+import { Button, Input } from '@/components/ui';
 
 const footerLinks = {
     shop: [
@@ -40,10 +41,9 @@ const socialLinks = [
 
 export function Footer() {
     return (
-        <footer className="bg-[var(--brutal-black)] text-[var(--brutal-white)] mt-20">
+        <footer className="bg-black text-white mt-20">
             {/* Newsletter */}
-            {/* Newsletter */}
-            <div className="bg-[var(--brutal-yellow)] text-[var(--brutal-black)] border-t-[var(--border-width-thick)] border-b-[var(--border-width-thick)] border-[var(--brutal-black)]">
+            <div className="bg-yellow-400 text-black border-t-4 border-b-4 border-black">
                 <div className="container py-12">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div>
@@ -53,17 +53,14 @@ export function Footer() {
                             </p>
                         </div>
                         <form className="flex w-full md:w-auto gap-3">
-                            <input
+                            <Input
                                 type="email"
                                 placeholder="Your email"
-                                className="brutal-input bg-[var(--brutal-white)] border-[var(--brutal-black)] text-[var(--brutal-black)] w-full md:w-80 placeholder:text-[var(--brutal-gray-500)]"
+                                className="bg-white text-black w-full md:w-80"
                             />
-                            <button
-                                type="submit"
-                                className="brutal-btn brutal-btn-dark whitespace-nowrap"
-                            >
+                            <Button variant="secondary" className="whitespace-nowrap">
                                 Subscribe
-                            </button>
+                            </Button>
                         </form>
                     </div>
                 </div>
@@ -79,7 +76,7 @@ export function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
-                                        className="text-[var(--brutal-gray-400)] hover:text-white transition-colors"
+                                        className="text-gray-400 hover:text-white transition-colors"
                                     >
                                         {link.label}
                                     </Link>
@@ -94,7 +91,7 @@ export function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
-                                        className="text-[var(--brutal-gray-400)] hover:text-white transition-colors"
+                                        className="text-gray-400 hover:text-white transition-colors"
                                     >
                                         {link.label}
                                     </Link>
@@ -109,7 +106,7 @@ export function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
-                                        className="text-[var(--brutal-gray-400)] hover:text-white transition-colors"
+                                        className="text-gray-400 hover:text-white transition-colors"
                                     >
                                         {link.label}
                                     </Link>
@@ -124,7 +121,7 @@ export function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
-                                        className="text-[var(--brutal-gray-400)] hover:text-white transition-colors"
+                                        className="text-gray-400 hover:text-white transition-colors"
                                     >
                                         {link.label}
                                     </Link>
@@ -136,7 +133,7 @@ export function Footer() {
             </div>
 
             {/* Bottom */}
-            <div className="border-t border-[var(--brutal-gray-700)]">
+            <div className="border-t border-gray-700">
                 <div className="container py-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-6">
                         {socialLinks.map((social) => (
@@ -145,14 +142,14 @@ export function Footer() {
                                 href={social.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[var(--brutal-gray-400)] hover:text-white transition-colors"
+                                className="text-gray-400 hover:text-white transition-colors"
                                 aria-label={social.label}
                             >
                                 <social.icon className="w-5 h-5" />
                             </a>
                         ))}
                     </div>
-                    <p className="text-[var(--brutal-gray-400)] text-sm">
+                    <p className="text-gray-400 text-sm">
                         © {new Date().getFullYear()} BRUTALIST STORE. All rights reserved.
                     </p>
                 </div>

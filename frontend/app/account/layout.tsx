@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { User, Package, MapPin, Heart, LogOut, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, Button, Skeleton } from '@/components/ui';
 
 const navItems = [
     { href: '/account', label: 'Overview', icon: User, exact: true },
@@ -36,16 +37,16 @@ export default function AccountLayout({
 
     if (isLoading) {
         return (
-            <div className="container py-12">
-                <div className="animate-pulse">
-                    <div className="h-8 w-48 bg-[var(--brutal-gray-200)] mb-8" />
+            <div className="min-h-screen py-12 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <Skeleton className="h-10 w-48 mb-8" />
                     <div className="flex gap-8">
                         <div className="w-64 space-y-4">
                             {Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="h-12 bg-[var(--brutal-gray-200)]" />
+                                <Skeleton key={i} className="h-12" />
                             ))}
                         </div>
-                        <div className="flex-1 h-96 bg-[var(--brutal-gray-200)]" />
+                        <Skeleton className="flex-1 h-96" />
                     </div>
                 </div>
             </div>
@@ -57,12 +58,12 @@ export default function AccountLayout({
     }
 
     return (
-        <div className="py-8">
-            <div className="container">
+        <div className="py-8 min-h-screen bg-gray-50">
+            <div className="container mx-auto px-4">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl md:text-4xl font-black">My Account</h1>
-                    <p className="text-[var(--brutal-gray-600)] mt-1">
+                    <p className="text-gray-600 mt-1">
                         Welcome back, {user?.name || 'Customer'}
                     </p>
                 </div>
@@ -70,44 +71,46 @@ export default function AccountLayout({
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar */}
                     <aside className="lg:w-64 flex-shrink-0">
-                        <nav className="brutal-card p-4 space-y-1">
-                            {navItems.map((item) => {
-                                const Icon = item.icon;
-                                const isActive = item.exact
-                                    ? pathname === item.href
-                                    : pathname?.startsWith(item.href);
+                        <Card shadow="md">
+                            <CardContent className="p-4 space-y-1">
+                                {navItems.map((item) => {
+                                    const Icon = item.icon;
+                                    const isActive = item.exact
+                                        ? pathname === item.href
+                                        : pathname?.startsWith(item.href);
 
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={cn(
-                                            'flex items-center gap-3 px-4 py-3 font-medium transition-colors',
-                                            isActive
-                                                ? 'bg-[var(--brutal-black)] text-white'
-                                                : 'hover:bg-[var(--brutal-gray-100)]'
-                                        )}
-                                    >
-                                        <Icon className="w-5 h-5" />
-                                        {item.label}
-                                        <ChevronRight className={cn(
-                                            'w-4 h-4 ml-auto transition-transform',
-                                            isActive && 'rotate-90'
-                                        )} />
-                                    </Link>
-                                );
-                            })}
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                'flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all',
+                                                isActive
+                                                    ? 'bg-black text-white'
+                                                    : 'hover:bg-yellow-400 hover:translate-x-1'
+                                            )}
+                                        >
+                                            <Icon className="w-5 h-5" />
+                                            {item.label}
+                                            <ChevronRight className={cn(
+                                                'w-4 h-4 ml-auto transition-transform',
+                                                isActive && 'rotate-90'
+                                            )} />
+                                        </Link>
+                                    );
+                                })}
 
-                            <hr className="my-4 border-[var(--brutal-gray-200)]" />
+                                <hr className="my-4 border-gray-200" />
 
-                            <button
-                                onClick={handleLogout}
-                                className="flex items-center gap-3 px-4 py-3 font-medium text-[var(--brutal-red)] hover:bg-[var(--brutal-gray-100)] w-full text-left"
-                            >
-                                <LogOut className="w-5 h-5" />
-                                Sign Out
-                            </button>
-                        </nav>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-3 px-4 py-3 font-medium text-red-500 hover:bg-red-50 w-full text-left rounded-lg transition-colors"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    Sign Out
+                                </button>
+                            </CardContent>
+                        </Card>
                     </aside>
 
                     {/* Main Content */}

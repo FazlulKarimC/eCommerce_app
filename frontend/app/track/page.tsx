@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Search, Package, Truck, CheckCircle, Clock, ArrowRight, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { formatPrice, cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Input } from '@/components/ui';
 
 interface OrderResult {
     id: string;
@@ -89,141 +90,142 @@ export default function TrackOrderPage() {
     const isCancelled = order && (order.status === 'CANCELLED' || order.status === 'REFUNDED');
 
     return (
-        <div className="py-12">
-            <div className="container max-w-3xl">
+        <div className="py-12 min-h-screen bg-gray-50">
+            <div className="container mx-auto px-4 max-w-3xl">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <Package className="w-16 h-16 mx-auto text-[var(--brutal-black)] mb-4" />
+                    <div className="w-20 h-20 bg-yellow-400 border-4 border-black rounded-xl shadow-[6px_6px_0px_#000] flex items-center justify-center mx-auto mb-4">
+                        <Package className="w-10 h-10" />
+                    </div>
                     <h1 className="text-4xl md:text-5xl font-black">Track Your Order</h1>
-                    <p className="text-[var(--brutal-gray-600)] mt-2">
+                    <p className="text-gray-600 mt-2">
                         Enter your order number and email to check the status
                     </p>
                 </div>
 
                 {/* Search Form */}
-                <form onSubmit={handleSearch} className="brutal-card p-6 mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="font-bold text-sm block mb-2">Order Number</label>
-                            <input
-                                type="text"
-                                value={orderNumber}
-                                onChange={(e) => setOrderNumber(e.target.value)}
-                                placeholder="e.g., ORD-1234567890"
-                                className="brutal-input"
-                            />
-                        </div>
-                        <div>
-                            <label className="font-bold text-sm block mb-2">Email Address</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="you@example.com"
-                                className="brutal-input"
-                            />
-                        </div>
-                    </div>
+                <Card shadow="lg" className="mb-8">
+                    <CardContent className="p-6">
+                        <form onSubmit={handleSearch}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="font-bold text-sm block mb-2">Order Number</label>
+                                    <Input
+                                        type="text"
+                                        value={orderNumber}
+                                        onChange={(e) => setOrderNumber(e.target.value)}
+                                        placeholder="e.g., ORD-1234567890"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="font-bold text-sm block mb-2">Email Address</label>
+                                    <Input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="you@example.com"
+                                    />
+                                </div>
+                            </div>
 
-                    {error && (
-                        <div className="bg-[var(--brutal-red)] text-white p-4 border-2 border-[var(--brutal-black)] mb-4">
-                            {error}
-                        </div>
-                    )}
+                            {error && (
+                                <div className="bg-red-500 text-white p-4 border-4 border-black rounded-xl mb-4">
+                                    {error}
+                                </div>
+                            )}
 
-                    <button
-                        type="submit"
-                        disabled={isSearching}
-                        className="brutal-btn brutal-btn-primary w-full"
-                    >
-                        {isSearching ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Searching...
-                            </>
-                        ) : (
-                            <>
-                                <Search className="w-5 h-5" />
-                                Track Order
-                            </>
-                        )}
-                    </button>
-                </form>
+                            <Button type="submit" disabled={isSearching} className="w-full" size="lg">
+                                {isSearching ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Search className="w-5 h-5" />
+                                        Track Order
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
 
                 {/* Order Result */}
                 {order && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                         {/* Order Header */}
-                        <div className="brutal-card p-6">
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                                <div>
-                                    <h2 className="text-2xl font-black">Order #{order.orderNumber}</h2>
-                                    <p className="text-[var(--brutal-gray-600)] mt-1">
-                                        Placed on {new Date(order.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                        })}
-                                    </p>
+                        <Card shadow="md">
+                            <CardContent className="p-6">
+                                <div className="flex flex-wrap items-start justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-2xl font-black">Order #{order.orderNumber}</h2>
+                                        <p className="text-gray-600 mt-1">
+                                            Placed on {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                            })}
+                                        </p>
+                                    </div>
+                                    <Badge variant={isCancelled ? 'cancelled' : 'success'} size="lg">
+                                        {order.status}
+                                    </Badge>
                                 </div>
-                                <span className={cn(
-                                    'brutal-badge text-sm',
-                                    isCancelled ? 'brutal-badge-red' : 'brutal-badge-green'
-                                )}>
-                                    {order.status}
-                                </span>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Status Timeline */}
                         {!isCancelled && (
-                            <div className="brutal-card p-6">
-                                <h3 className="font-black mb-6">Order Progress</h3>
-                                <div className="flex items-center justify-between relative">
-                                    <div className="absolute top-5 left-0 right-0 h-1 bg-[var(--brutal-gray-200)]">
-                                        <div
-                                            className="h-full bg-[var(--brutal-green)] transition-all"
-                                            style={{ width: `${(currentStatus / (statusSteps.length - 1)) * 100}%` }}
-                                        />
-                                    </div>
+                            <Card shadow="md">
+                                <CardContent className="p-6">
+                                    <h3 className="font-black mb-6">Order Progress</h3>
+                                    <div className="flex items-center justify-between relative">
+                                        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200">
+                                            <div
+                                                className="h-full bg-green-500 transition-all"
+                                                style={{ width: `${(currentStatus / (statusSteps.length - 1)) * 100}%` }}
+                                            />
+                                        </div>
 
-                                    {statusSteps.map((step, index) => {
-                                        const Icon = step.icon;
-                                        const isComplete = index <= currentStatus;
-                                        const isCurrent = index === currentStatus;
+                                        {statusSteps.map((step, index) => {
+                                            const Icon = step.icon;
+                                            const isComplete = index <= currentStatus;
+                                            const isCurrent = index === currentStatus;
 
-                                        return (
-                                            <div key={step.key} className="relative z-10 flex flex-col items-center">
-                                                <div className={cn(
-                                                    'w-10 h-10 rounded-full border-2 flex items-center justify-center',
-                                                    isComplete
-                                                        ? 'bg-[var(--brutal-green)] border-[var(--brutal-green)] text-white'
-                                                        : 'bg-white border-[var(--brutal-gray-300)] text-[var(--brutal-gray-400)]'
-                                                )}>
-                                                    <Icon className="w-5 h-5" />
+                                            return (
+                                                <div key={step.key} className="relative z-10 flex flex-col items-center">
+                                                    <div className={cn(
+                                                        'w-10 h-10 rounded-full border-4 flex items-center justify-center',
+                                                        isComplete
+                                                            ? 'bg-green-500 border-green-500 text-white'
+                                                            : 'bg-white border-gray-300 text-gray-400'
+                                                    )}>
+                                                        <Icon className="w-5 h-5" />
+                                                    </div>
+                                                    <span className={cn(
+                                                        'text-xs mt-2 text-center',
+                                                        isCurrent ? 'font-bold' : 'text-gray-600'
+                                                    )}>
+                                                        {step.label}
+                                                    </span>
                                                 </div>
-                                                <span className={cn(
-                                                    'text-xs mt-2 text-center',
-                                                    isCurrent ? 'font-bold' : 'text-[var(--brutal-gray-600)]'
-                                                )}>
-                                                    {step.label}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                            );
+                                        })}
+                                    </div>
+                                </CardContent>
+                            </Card>
                         )}
 
                         {/* Items */}
-                        <div className="brutal-card">
-                            <div className="p-6 border-b-2 border-[var(--brutal-gray-200)]">
-                                <h3 className="font-black">Items ({order.items.length})</h3>
-                            </div>
-                            <div className="divide-y-2 divide-[var(--brutal-gray-200)]">
+                        <Card shadow="md">
+                            <CardHeader>
+                                <CardTitle>Items ({order.items.length})</CardTitle>
+                            </CardHeader>
+                            <div className="divide-y-4 divide-black">
                                 {order.items.map((item) => (
                                     <div key={item.id} className="p-6 flex gap-4">
-                                        <div className="w-16 h-16 bg-[var(--brutal-gray-100)] border-2 border-[var(--brutal-black)] flex-shrink-0 relative overflow-hidden">
+                                        <div className="w-16 h-16 bg-gray-100 border-4 border-black rounded-lg flex-shrink-0 relative overflow-hidden">
                                             {item.productImage ? (
                                                 <Image
                                                     src={item.productImage}
@@ -233,24 +235,26 @@ export default function TrackOrderPage() {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">
-                                                    <Package className="w-6 h-6 text-[var(--brutal-gray-300)]" />
+                                                    <Package className="w-6 h-6 text-gray-300" />
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex-1">
                                             <p className="font-bold">{item.productTitle}</p>
-                                            <p className="text-sm text-[var(--brutal-gray-600)]">Qty: {item.quantity}</p>
+                                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-bold">{formatPrice(item.price * item.quantity)}</p>
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </Card>
 
                         {/* Summary */}
-                        <div className="brutal-card p-6">
-                            <h3 className="font-black mb-4">Order Summary</h3>
-                            <div className="space-y-2">
+                        <Card shadow="md">
+                            <CardHeader>
+                                <CardTitle>Order Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
                                 <div className="flex justify-between">
                                     <span>Subtotal</span>
                                     <span>{formatPrice(order.subtotal)}</span>
@@ -263,29 +267,31 @@ export default function TrackOrderPage() {
                                     <span>Tax</span>
                                     <span>{formatPrice(order.tax)}</span>
                                 </div>
-                                <div className="flex justify-between font-black text-lg pt-2 border-t">
+                                <div className="flex justify-between font-black text-lg pt-2 border-t-4 border-black">
                                     <span>Total</span>
                                     <span>{formatPrice(order.total)}</span>
                                 </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
                         {/* CTA */}
                         <div className="text-center">
-                            <Link href="/products" className="brutal-btn brutal-btn-dark inline-flex">
-                                Continue Shopping
-                                <ArrowRight className="w-4 h-4" />
-                            </Link>
+                            <Button asChild variant="secondary" size="lg">
+                                <Link href="/products">
+                                    Continue Shopping
+                                    <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </Button>
                         </div>
                     </div>
                 )}
 
                 {/* Help Text */}
                 {!order && (
-                    <div className="text-center text-[var(--brutal-gray-600)]">
+                    <div className="text-center text-gray-600">
                         <p>
                             Can't find your order confirmation email?{' '}
-                            <Link href="/account" className="font-bold text-[var(--brutal-red)] hover:underline">
+                            <Link href="/account" className="font-bold text-red-500 hover:underline">
                                 Sign in to your account
                             </Link>
                         </p>

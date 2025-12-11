@@ -7,6 +7,7 @@ import { useWishlist, useRemoveFromWishlist } from '@/lib/hooks';
 import { useCartStore } from '@/lib/cart';
 import { formatPrice } from '@/lib/utils';
 import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, SkeletonCard } from '@/components/ui';
 
 export default function WishlistPage() {
     const { data: wishlist, isLoading } = useWishlist();
@@ -37,127 +38,124 @@ export default function WishlistPage() {
 
     return (
         <div>
-            <div className="brutal-card">
-                <div className="p-6 border-b-2 border-[var(--brutal-gray-200)]">
-                    <h2 className="text-2xl font-black">My Wishlist</h2>
-                    <p className="text-[var(--brutal-gray-600)] mt-1">
+            <Card shadow="md">
+                <CardHeader>
+                    <CardTitle className="text-2xl">My Wishlist</CardTitle>
+                    <p className="text-gray-600 mt-1">
                         {wishlist?.length || 0} items saved for later
                     </p>
-                </div>
+                </CardHeader>
 
                 {isLoading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="brutal-card animate-pulse">
-                                <div className="aspect-square bg-[var(--brutal-gray-200)]" />
-                                <div className="p-4 space-y-2">
-                                    <div className="h-4 bg-[var(--brutal-gray-200)] w-3/4" />
-                                    <div className="h-4 bg-[var(--brutal-gray-200)] w-1/2" />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <SkeletonCard key={i} />
+                            ))}
+                        </div>
+                    </CardContent>
                 ) : !wishlist || wishlist.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <Heart className="w-16 h-16 mx-auto text-[var(--brutal-gray-300)] mb-4" />
+                    <CardContent className="p-12 text-center">
+                        <Heart className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                         <h3 className="text-xl font-black">Your Wishlist is Empty</h3>
-                        <p className="text-[var(--brutal-gray-600)] mt-2">
+                        <p className="text-gray-600 mt-2">
                             Save items you love to your wishlist
                         </p>
-                        <Link href="/products" className="brutal-btn brutal-btn-primary mt-6 inline-flex">
-                            Browse Products
-                        </Link>
-                    </div>
+                        <Button asChild className="mt-6">
+                            <Link href="/products">Browse Products</Link>
+                        </Button>
+                    </CardContent>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                        {wishlist.map((item) => {
-                            const product = item.product;
-                            const price = product.price || 0;
-                            const compareAtPrice = product.compareAtPrice;
-                            const isOnSale = compareAtPrice && compareAtPrice > price;
+                    <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {wishlist.map((item) => {
+                                const product = item.product;
+                                const price = product.price || 0;
+                                const compareAtPrice = product.compareAtPrice;
+                                const isOnSale = compareAtPrice && compareAtPrice > price;
 
-                            return (
-                                <div key={item.id} className="brutal-card overflow-hidden group">
-                                    {/* Image */}
-                                    <Link href={`/products/${product.slug}`} className="block relative aspect-square bg-[var(--brutal-gray-100)]">
-                                        {product.image ? (
-                                            <Image
-                                                src={product.image}
-                                                alt={product.title}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <ShoppingBag className="w-12 h-12 text-[var(--brutal-gray-300)]" />
-                                            </div>
-                                        )}
-
-                                        {/* Sale Badge */}
-                                        {isOnSale && (
-                                            <span className="absolute top-2 left-2 brutal-badge brutal-badge-red text-xs">
-                                                Sale
-                                            </span>
-                                        )}
-
-                                        {/* Remove Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleRemove(product.id);
-                                            }}
-                                            disabled={removing === product.id}
-                                            className="absolute top-2 right-2 w-8 h-8 bg-white border-2 border-[var(--brutal-black)] flex items-center justify-center hover:bg-[var(--brutal-red)] hover:text-white transition-colors"
-                                            title="Remove from wishlist"
-                                        >
-                                            {removing === product.id ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                return (
+                                    <Card key={item.id} shadow="sm" hover="liftSm" className="overflow-hidden group">
+                                        {/* Image */}
+                                        <Link href={`/products/${product.slug}`} className="block relative aspect-square bg-gray-100">
+                                            {product.image ? (
+                                                <Image
+                                                    src={product.image}
+                                                    alt={product.title}
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform"
+                                                />
                                             ) : (
-                                                <Trash2 className="w-4 h-4" />
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <ShoppingBag className="w-12 h-12 text-gray-300" />
+                                                </div>
                                             )}
-                                        </button>
-                                    </Link>
 
-                                    {/* Content */}
-                                    <div className="p-4">
-                                        <Link href={`/products/${product.slug}`}>
-                                            <h3 className="font-bold line-clamp-1 hover:text-[var(--brutal-red)] transition-colors">
-                                                {product.title}
-                                            </h3>
-                                        </Link>
-
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className={isOnSale ? 'price price-sale' : 'price'}>
-                                                {formatPrice(price)}
-                                            </span>
+                                            {/* Sale Badge */}
                                             {isOnSale && (
-                                                <span className="price price-compare text-sm">
-                                                    {formatPrice(compareAtPrice)}
-                                                </span>
+                                                <Badge variant="sale" className="absolute top-2 left-2">
+                                                    Sale
+                                                </Badge>
                                             )}
-                                        </div>
 
-                                        {/* Add to Cart / View Product */}
-                                        <Link
-                                            href={`/products/${product.slug}`}
-                                            className="brutal-btn brutal-btn-dark w-full mt-4 text-sm"
-                                        >
-                                            {!product.inStock ? (
-                                                'Out of Stock'
-                                            ) : (
-                                                <>
-                                                    <ShoppingBag className="w-4 h-4" />
-                                                    View Product
-                                                </>
-                                            )}
+                                            {/* Remove Button */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleRemove(product.id);
+                                                }}
+                                                disabled={removing === product.id}
+                                                className="absolute top-2 right-2 w-8 h-8 bg-white border-4 border-black rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-[2px_2px_0px_#000]"
+                                                title="Remove from wishlist"
+                                            >
+                                                {removing === product.id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="w-4 h-4" />
+                                                )}
+                                            </button>
                                         </Link>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+
+                                        {/* Content */}
+                                        <CardContent className="p-4">
+                                            <Link href={`/products/${product.slug}`}>
+                                                <h3 className="font-bold line-clamp-1 hover:text-red-500 transition-colors">
+                                                    {product.title}
+                                                </h3>
+                                            </Link>
+
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className={isOnSale ? 'font-black text-red-500' : 'font-black'}>
+                                                    {formatPrice(price)}
+                                                </span>
+                                                {isOnSale && (
+                                                    <span className="text-gray-400 line-through text-sm">
+                                                        {formatPrice(compareAtPrice)}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* View Product Button */}
+                                            <Button asChild variant="secondary" className="w-full mt-4" size="sm">
+                                                <Link href={`/products/${product.slug}`}>
+                                                    {!product.inStock ? (
+                                                        'Out of Stock'
+                                                    ) : (
+                                                        <>
+                                                            <ShoppingBag className="w-4 h-4" />
+                                                            View Product
+                                                        </>
+                                                    )}
+                                                </Link>
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

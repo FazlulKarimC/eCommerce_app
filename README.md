@@ -79,6 +79,23 @@ ecommerce_app/
 
 ---
 
+## 🎨 Design System
+
+This project uses a **Neo Brutalism** design system with strict guidelines for colors, typography, shadows, and components.
+
+📖 **[View Design System Documentation](frontend/DESIGN_SYSTEM.md)**
+
+### Key Design Principles
+- **4 Colors Only**: Electric Yellow (`#FACC15`), Signal Red (`#EF4444`), Pure Black (`#000`), Off-White (`#FFF`)
+- **Thick Borders**: 4px black borders on all primary elements
+- **Offset Shadows**: Hard-edged shadows (no blur) - e.g., `4px 4px 0px #000`
+- **Bold Typography**: Space Grotesk for headings, DM Sans for body
+- **Lift Hover Effect**: Elements lift up with expanded shadow on hover
+
+> ⚠️ **All UI changes must follow the design system.** Review the documentation before making styling modifications.
+
+---
+
 ## 📋 Prerequisites
 
 - **Node.js** v18 or higher
@@ -202,6 +219,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-Built with 💻 and ☕ by **Fazlul Karim**
+Built with Time and Effort by **Fazlul Karim**
 
 </div>

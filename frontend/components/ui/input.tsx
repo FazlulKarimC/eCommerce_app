@@ -1,21 +1,96 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
-  return (
-    <input
-      type={type}
-      data-slot="input"
-      className={cn(
-        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+const inputVariants = cva(
+  "w-full min-w-0 bg-white text-black placeholder:text-gray-400 transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        // Neo Brutalism input
+        brutal:
+          "border-4 border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_#000] focus:shadow-[2px_2px_0px_#000] focus:translate-x-[2px] focus:translate-y-[2px]",
+        // Standard input (backwards compatibility)
+        default:
+          "border border-input rounded-md px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+      },
+      inputSize: {
+        default: "h-12 text-base",
+        sm: "h-10 text-sm px-3 py-2",
+        lg: "h-14 text-lg px-5 py-4",
+      },
+      state: {
+        default: "",
+        error: "border-red-500 focus:border-red-500",
+        success: "border-green-500 focus:border-green-500",
+      },
+    },
+    defaultVariants: {
+      variant: "brutal",
+      inputSize: "default",
+      state: "default",
+    },
+  }
+)
 
-export { Input }
+export interface InputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
+  VariantProps<typeof inputVariants> { }
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, variant, inputSize, state, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(inputVariants({ variant, inputSize, state, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+// Textarea with brutalist styling
+const textareaVariants = cva(
+  "w-full min-w-0 bg-white text-black placeholder:text-gray-400 transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 resize-none",
+  {
+    variants: {
+      variant: {
+        brutal:
+          "border-4 border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_#000] focus:shadow-[2px_2px_0px_#000] focus:translate-x-[2px] focus:translate-y-[2px]",
+        default:
+          "border border-input rounded-md px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+      },
+      state: {
+        default: "",
+        error: "border-red-500 focus:border-red-500",
+        success: "border-green-500 focus:border-green-500",
+      },
+    },
+    defaultVariants: {
+      variant: "brutal",
+      state: "default",
+    },
+  }
+)
+
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  VariantProps<typeof textareaVariants> { }
+
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, variant, state, ...props }, ref) => {
+    return (
+      <textarea
+        className={cn(textareaVariants({ variant, state, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Textarea.displayName = "Textarea"
+
+export { Input, inputVariants, Textarea, textareaVariants }

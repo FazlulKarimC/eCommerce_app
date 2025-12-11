@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CheckCircle2, Package, ArrowRight } from 'lucide-react';
 import { useOrderByNumber } from '@/lib/hooks';
 import { formatPrice } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, Button, Skeleton } from '@/components/ui';
 
 export default function ThankYouPage({ params }: { params: Promise<{ orderNumber: string }> }) {
   const { orderNumber } = use(params);
@@ -12,11 +13,11 @@ export default function ThankYouPage({ params }: { params: Promise<{ orderNumber
 
   if (isLoading) {
     return (
-      <div className="container py-20 text-center">
-        <div className="animate-pulse">
-          <div className="h-20 w-20 bg-[var(--brutal-gray-200)] rounded-full mx-auto mb-6" />
-          <div className="h-8 w-64 bg-[var(--brutal-gray-200)] mx-auto mb-4" />
-          <div className="h-6 w-48 bg-[var(--brutal-gray-200)] mx-auto" />
+      <div className="min-h-[60vh] flex items-center justify-center py-20">
+        <div className="text-center">
+          <Skeleton className="h-24 w-24 rounded-full mx-auto mb-6" />
+          <Skeleton className="h-8 w-64 mx-auto mb-4" />
+          <Skeleton className="h-6 w-48 mx-auto" />
         </div>
       </div>
     );
@@ -24,23 +25,25 @@ export default function ThankYouPage({ params }: { params: Promise<{ orderNumber
 
   if (error || !order) {
     return (
-      <div className="container py-20 text-center">
-        <h1 className="text-4xl font-black">Order Not Found</h1>
-        <p className="text-[var(--brutal-gray-600)] mt-2">
-          We couldn't find order #{orderNumber}
-        </p>
-        <Link href="/" className="brutal-btn brutal-btn-dark mt-8 inline-flex">
-          Return Home
-        </Link>
+      <div className="min-h-[60vh] flex items-center justify-center py-20">
+        <div className="text-center">
+          <h1 className="text-4xl font-black mb-2">Order Not Found</h1>
+          <p className="text-gray-600 mb-8">
+            We couldn't find order #{orderNumber}
+          </p>
+          <Button asChild size="lg">
+            <Link href="/">Return Home</Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="py-12">
-      <div className="container max-w-2xl text-center">
+    <div className="py-12 min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 max-w-2xl text-center">
         {/* Success Icon */}
-        <div className="w-24 h-24 bg-[var(--brutal-green)] border-4 border-[var(--brutal-black)] rounded-full flex items-center justify-center mx-auto mb-8">
+        <div className="w-24 h-24 bg-green-500 border-4 border-black rounded-full flex items-center justify-center mx-auto mb-8 shadow-[6px_6px_0px_#000]">
           <CheckCircle2 className="w-12 h-12 text-white" />
         </div>
 
@@ -48,7 +51,7 @@ export default function ThankYouPage({ params }: { params: Promise<{ orderNumber
           Thank You for Your Order!
         </h1>
 
-        <p className="text-xl text-[var(--brutal-gray-700)] mb-2">
+        <p className="text-xl text-gray-700 mb-2">
           Your order has been confirmed
         </p>
 
@@ -57,63 +60,68 @@ export default function ThankYouPage({ params }: { params: Promise<{ orderNumber
         </p>
 
         {/* Order Summary */}
-        <div className="brutal-card p-6 text-left mb-8">
-          <h2 className="text-xl font-black mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Order Summary
-          </h2>
+        <Card shadow="lg" className="text-left mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Order Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 mb-6">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex justify-between">
+                  <span>
+                    {item.productTitle} × {item.quantity}
+                  </span>
+                  <span className="font-bold">{formatPrice(item.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
 
-          <div className="space-y-3 mb-6">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex justify-between">
-                <span>
-                  {item.productTitle} × {item.quantity}
-                </span>
-                <span className="font-bold">{formatPrice(item.price * item.quantity)}</span>
+            <div className="border-t-4 border-black pt-4 space-y-2">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(order.subtotal)}</span>
               </div>
-            ))}
-          </div>
-
-          <div className="border-t-2 border-[var(--brutal-gray-200)] pt-4 space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{formatPrice(order.subtotal)}</span>
-            </div>
-            {order.discount > 0 && (
-              <div className="flex justify-between text-[var(--brutal-green)]">
-                <span>Discount</span>
-                <span>-{formatPrice(order.discount)}</span>
+              {order.discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>-{formatPrice(order.discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{formatPrice(order.shippingCost)}</span>
               </div>
-            )}
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>{formatPrice(order.shippingCost)}</span>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>{formatPrice(order.tax)}</span>
+              </div>
+              <div className="flex justify-between text-xl pt-2 border-t-4 border-black">
+                <span className="font-black">Total</span>
+                <span className="font-black">{formatPrice(order.total)}</span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span>Tax</span>
-              <span>{formatPrice(order.tax)}</span>
-            </div>
-            <div className="flex justify-between text-xl pt-2 border-t">
-              <span className="font-black">Total</span>
-              <span className="font-black">{formatPrice(order.total)}</span>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Email Confirmation */}
-        <p className="text-[var(--brutal-gray-600)] mb-8">
+        <p className="text-gray-600 mb-8">
           A confirmation email has been sent to <span className="font-bold">{order.email}</span>
         </p>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/products" className="brutal-btn brutal-btn-primary">
-            Continue Shopping
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link href="/orders" className="brutal-btn">
-            View Orders
-          </Link>
+          <Button asChild size="lg">
+            <Link href="/products">
+              Continue Shopping
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/orders">View Orders</Link>
+          </Button>
         </div>
       </div>
     </div>
