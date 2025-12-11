@@ -1,161 +1,224 @@
-'use client';
+'use client'
 
-import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useCartStore } from '@/lib/cart';
-import { formatPrice } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react"
+import { useCartStore } from "@/lib/cart"
+import { cn, formatPrice } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 export function CartDrawer() {
-    const { cart, isOpen, isLoading, setIsOpen, updateItemQuantity, removeItem } = useCartStore();
+    const { cart, isOpen, closeCart, isLoading, updateItemQuantity, removeItem } = useCartStore()
 
-    if (!isOpen) return null;
+    // Close on escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape") closeCart()
+        }
+        if (isOpen) {
+            document.addEventListener("keydown", handleEscape)
+            document.body.style.overflow = "hidden"
+        }
+        return () => {
+            document.removeEventListener("keydown", handleEscape)
+            document.body.style.overflow = ""
+        }
+    }, [isOpen, closeCart])
 
     return (
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/50 z-50"
-                onClick={() => setIsOpen(false)}
+                className={cn(
+                    "fixed inset-0 bg-black/60 z-50 transition-opacity duration-300",
+                    isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+                )}
+                onClick={closeCart}
             />
 
             {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--brutal-white)] z-50 flex flex-col border-l-[var(--border-width-thick)] border-[var(--brutal-black)] shadow-[var(--shadow-xl)]">
+            <div
+                className={cn(
+                    "fixed top-0 right-0 h-full w-full max-w-md bg-secondary z-50 border-l-4 border-black transition-transform duration-300 ease-out flex flex-col",
+                    isOpen ? "translate-x-0" : "translate-x-full",
+                )}
+            >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b-4 border-[var(--brutal-black)]">
-                    <h2 className="text-xl font-black uppercase">Your Cart</h2>
-                    <button
-                        onClick={() => setIsOpen(false)}
-                        className="p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
-                        aria-label="Close cart"
+                <div className="flex items-center justify-between p-4 border-b-4 border-black bg-primary">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-black text-primary rounded-lg flex items-center justify-center border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <ShoppingBag className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 className="font-black text-xl uppercase tracking-tight">Your Cart</h2>
+                            <p className="text-sm font-bold">{cart?.itemCount || 0} items</p>
+                        </div>
+                    </div>
+                    <Button
+                        onClick={closeCart}
+                        variant="ghost"
+                        size="icon"
+                        className="border-4 border-black bg-secondary hover:bg-black hover:text-secondary rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
                     >
-                        <X className="w-6 h-6" />
-                    </button>
+                        <X className="w-5 h-5" />
+                    </Button>
                 </div>
 
-                {/* Items */}
-                <div className="flex-1 overflow-y-auto p-4">
-                    {!cart || cart.items.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                            <ShoppingBag className="w-16 h-16 text-[var(--brutal-gray-400)] mb-4" />
-                            <p className="text-lg font-bold">Your cart is empty</p>
-                            <p className="text-[var(--brutal-gray-500)] mt-1">
-                                Add some items to get started
-                            </p>
-                            <Link
-                                href="/products"
-                                onClick={() => setIsOpen(false)}
-                                className="brutal-btn brutal-btn-dark mt-6"
-                            >
-                                Shop Now
-                            </Link>
+                {/* Cart Content */}
+                {!cart || cart.items.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                        <div className="w-24 h-24 bg-gray-100 rounded-xl border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center mb-6">
+                            <ShoppingBag className="w-12 h-12 text-gray-400" />
                         </div>
-                    ) : (
-                        <div className="space-y-4">
+                        <h3 className="font-black text-2xl mb-2">Cart is Empty</h3>
+                        <p className="text-gray-600 mb-6">Add some brutal items to get started</p>
+                        <Button
+                            onClick={closeCart}
+                            asChild
+                            className="bg-black text-secondary hover:bg-gray-800 border-4 border-black rounded-lg px-6 py-3 font-bold shadow-[4px_4px_0px_0px_#FFEB3B] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                        >
+                            <Link href="/products">
+                                Start Shopping
+                                <ArrowRight className="w-5 h-5 ml-2" />
+                            </Link>
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Items */}
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
                             {cart.items.map((item) => (
                                 <div
                                     key={item.id}
-                                    className="brutal-card p-4 flex gap-4"
+                                    className="bg-white rounded-lg border-3 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                                 >
-                                    {/* Image */}
-                                    <div className="w-20 h-20 bg-[var(--brutal-gray-100)] border-2 border-[var(--brutal-black)] flex-shrink-0 relative overflow-hidden">
-                                        {item.product.image ? (
-                                            <Image
-                                                src={item.product.image}
-                                                alt={item.product.title}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <ShoppingBag className="w-8 h-8 text-[var(--brutal-gray-400)]" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Details */}
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex gap-3">
+                                        {/* Image */}
                                         <Link
                                             href={`/products/${item.product.slug}`}
-                                            onClick={() => setIsOpen(false)}
-                                            className="font-bold text-sm hover:text-[var(--brutal-red)] transition-colors line-clamp-1"
+                                            onClick={closeCart}
+                                            className="w-16 h-16 shrink-0 rounded-md border-2 border-black overflow-hidden relative bg-gray-100"
                                         >
-                                            {item.product.title}
+                                            {item.product.image ? (
+                                                <Image
+                                                    src={item.product.image || "/placeholder.svg"}
+                                                    alt={item.product.title}
+                                                    fill
+                                                    className="object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <ShoppingBag className="w-6 h-6 text-gray-400" />
+                                                </div>
+                                            )}
                                         </Link>
-                                        <p className="text-xs text-[var(--brutal-gray-600)] mt-0.5">
-                                            {item.variant.title !== 'Default' && item.variant.title}
-                                        </p>
-                                        <p className="font-bold mt-1">
-                                            {formatPrice(item.variant.price)}
-                                        </p>
 
-                                        {/* Quantity Controls */}
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <div className="flex items-center border-2 border-[var(--brutal-black)]">
-                                                <button
-                                                    onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                                                    className="p-1 hover:bg-[var(--brutal-gray-100)]"
-                                                    disabled={isLoading}
-                                                    aria-label="Decrease quantity"
+                                        {/* Details */}
+                                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                            <div>
+                                                <Link
+                                                    href={`/products/${item.product.slug}`}
+                                                    onClick={closeCart}
+                                                    className="font-bold text-xs hover:text-red-500 transition-colors line-clamp-1"
                                                 >
-                                                    <Minus className="w-4 h-4" />
-                                                </button>
-                                                <span className="w-8 text-center text-sm font-bold">
-                                                    {item.quantity}
-                                                </span>
-                                                <button
-                                                    onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                                                    className="p-1 hover:bg-[var(--brutal-gray-100)]"
-                                                    disabled={isLoading || item.quantity >= item.variant.inventoryQty}
-                                                    aria-label="Increase quantity"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                </button>
+                                                    {item.product.title}
+                                                </Link>
+                                                {item.variant.title !== "Default" && (
+                                                    <p className="text-[10px] text-gray-600">
+                                                        {item.variant.options.map((o) => o.value).join(" / ")}
+                                                    </p>
+                                                )}
                                             </div>
 
-                                            <button
-                                                onClick={() => removeItem(item.id)}
-                                                className="text-xs text-[var(--brutal-red)] font-bold hover:underline ml-auto"
-                                                disabled={isLoading}
-                                            >
-                                                Remove
-                                            </button>
+                                            <div className="flex items-center justify-between mt-1">
+                                                {/* Quantity - compact */}
+                                                <div className="flex items-center border-2 border-black rounded-md overflow-hidden">
+                                                    <button
+                                                        onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                                                        disabled={isLoading}
+                                                        className="p-1 hover:bg-primary transition-colors disabled:opacity-50"
+                                                        aria-label="Decrease quantity"
+                                                    >
+                                                        <Minus className="w-3 h-3" />
+                                                    </button>
+                                                    <span className="w-6 text-center font-black text-xs bg-white">{item.quantity}</span>
+                                                    <button
+                                                        onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                                                        disabled={isLoading || item.quantity >= item.variant.inventoryQty}
+                                                        className="p-1 hover:bg-primary transition-colors disabled:opacity-50"
+                                                        aria-label="Increase quantity"
+                                                    >
+                                                        <Plus className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+
+                                                <p className="font-black text-sm">{formatPrice(item.lineTotal)}</p>
+                                            </div>
                                         </div>
+
+                                        <button
+                                            onClick={() => removeItem(item.id)}
+                                            disabled={isLoading}
+                                            className="self-start p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                                            aria-label="Remove item"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    )}
-                </div>
 
-                {/* Footer */}
-                {cart && cart.items.length > 0 && (
-                    <div className="border-t-4 border-[var(--brutal-black)] p-4 space-y-4">
-                        <div className="flex items-center justify-between text-lg">
-                            <span className="font-bold">Subtotal</span>
-                            <span className="font-black">{formatPrice(cart.subtotal)}</span>
+                        {/* Footer - More compact footer */}
+                        <div className="border-t-4 border-black p-3 bg-white">
+                            {/* Free Shipping Progress - Smaller padding */}
+                            <div className="mb-3 p-2 bg-primary/30 rounded-lg border-2 border-black">
+                                {cart.subtotal >= 75 ? (
+                                    <p className="text-xs font-bold text-center">
+                                        You qualify for <span className="text-green-600">FREE SHIPPING</span>!
+                                    </p>
+                                ) : (
+                                    <p className="text-xs font-bold text-center">
+                                        Add <span className="text-red-500">{formatPrice(75 - cart.subtotal)}</span> more for FREE shipping
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Totals - Condensed spacing */}
+                            <div className="space-y-1 mb-3">
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span className="font-bold">{formatPrice(cart.subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between pt-1 border-t border-dashed border-gray-300">
+                                    <span className="font-bold text-sm">Total</span>
+                                    <span className="font-black text-base">{formatPrice(cart.subtotal)}</span>
+                                </div>
+                            </div>
+
+                            {/* Buttons - Smaller buttons */}
+                            <Button
+                                asChild
+                                className="w-full bg-black text-secondary hover:bg-gray-800 border-3 border-black rounded-lg py-4 font-black text-sm shadow-[3px_3px_0px_0px_#FFEB3B] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                            >
+                                <Link href="/checkout" onClick={closeCart}>
+                                    Checkout
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </Link>
+                            </Button>
+                            <Button
+                                onClick={closeCart}
+                                asChild
+                                variant="outline"
+                                className="w-full mt-2 border-3 border-black rounded-lg py-3 font-bold text-sm hover:bg-primary hover:text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all bg-transparent"
+                            >
+                                <Link href="/products">Continue Shopping</Link>
+                            </Button>
                         </div>
-                        <p className="text-sm text-[var(--brutal-gray-600)]">
-                            Shipping and taxes calculated at checkout
-                        </p>
-                        <Link
-                            href="/checkout"
-                            onClick={() => setIsOpen(false)}
-                            className="brutal-btn brutal-btn-primary w-full"
-                        >
-                            Checkout
-                        </Link>
-                        <Link
-                            href="/cart"
-                            onClick={() => setIsOpen(false)}
-                            className="brutal-btn w-full"
-                        >
-                            View Cart
-                        </Link>
-                    </div>
+                    </>
                 )}
             </div>
         </>
-    );
+    )
 }

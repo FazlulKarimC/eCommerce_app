@@ -44,6 +44,7 @@ interface CartState {
     removeItem: (itemId: string) => Promise<void>;
     clearCart: () => Promise<void>;
     setIsOpen: (isOpen: boolean) => void;
+    closeCart: () => void;
     toggleCart: () => void;
 }
 
@@ -156,6 +157,7 @@ export const useCartStore = create<CartState>()(
             },
 
             setIsOpen: (isOpen) => set({ isOpen }),
+            closeCart: () => set({ isOpen: false }),
             toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
         }),
         {

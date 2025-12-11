@@ -12,9 +12,9 @@ export default function CartPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container py-20 text-center">
-        <ShoppingBag className="w-20 h-20 mx-auto text-[var(--brutal-gray-400)] mb-6" />
+        <ShoppingBag className="w-20 h-20 mx-auto text-(--brutal-gray-400) mb-6" />
         <h1 className="text-4xl font-black">Your Cart is Empty</h1>
-        <p className="text-[var(--brutal-gray-600)] mt-2 text-lg">
+        <p className="text-(--brutal-gray-600) mt-2 text-lg">
           Add some items to get started
         </p>
         <Link href="/products" className="brutal-btn brutal-btn-dark mt-8 inline-flex">
@@ -41,7 +41,7 @@ export default function CartPage() {
                 {/* Image */}
                 <Link
                   href={`/products/${item.product.slug}`}
-                  className="w-28 h-28 flex-shrink-0 border-2 border-[var(--brutal-black)] overflow-hidden relative"
+                  className="w-28 h-28 shrink-0 border-2 border-(--brutal-black) overflow-hidden relative"
                 >
                   {item.product.image ? (
                     <Image
@@ -51,8 +51,8 @@ export default function CartPage() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[var(--brutal-gray-100)]">
-                      <ShoppingBag className="w-10 h-10 text-[var(--brutal-gray-400)]" />
+                    <div className="w-full h-full flex items-center justify-center bg-(--brutal-gray-100)">
+                      <ShoppingBag className="w-10 h-10 text-(--brutal-gray-400)" />
                     </div>
                   )}
                 </Link>
@@ -63,17 +63,17 @@ export default function CartPage() {
                     <div>
                       <Link
                         href={`/products/${item.product.slug}`}
-                        className="font-bold text-lg hover:text-[var(--brutal-red)] transition-colors"
+                        className="font-bold text-lg hover:text-(--brutal-red) transition-colors"
                       >
                         {item.product.title}
                       </Link>
                       {item.variant.title !== 'Default' && (
-                        <p className="text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-(--brutal-gray-600) mt-1">
                           {item.variant.options.map((o) => o.value).join(' / ')}
                         </p>
                       )}
                       {item.variant.sku && (
-                        <p className="text-sm text-[var(--brutal-gray-500)]">
+                        <p className="text-sm text-(--brutal-gray-500)">
                           SKU: {item.variant.sku}
                         </p>
                       )}
@@ -85,10 +85,10 @@ export default function CartPage() {
 
                   <div className="flex items-center justify-between mt-4">
                     {/* Quantity */}
-                    <div className="flex items-center border-2 border-[var(--brutal-black)]">
+                    <div className="flex items-center border-2 border-(--brutal-black)">
                       <button
                         onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                        className="p-2 hover:bg-[var(--brutal-gray-100)]"
+                        className="p-2 hover:bg-(--brutal-gray-100)"
                         disabled={isLoading}
                         aria-label="Decrease quantity"
                       >
@@ -99,7 +99,7 @@ export default function CartPage() {
                       </span>
                       <button
                         onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                        className="p-2 hover:bg-[var(--brutal-gray-100)]"
+                        className="p-2 hover:bg-(--brutal-gray-100)"
                         disabled={isLoading || item.quantity >= item.variant.inventoryQty}
                         aria-label="Increase quantity"
                       >
@@ -110,7 +110,7 @@ export default function CartPage() {
                     {/* Remove */}
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="flex items-center gap-2 text-[var(--brutal-red)] font-bold hover:underline"
+                      className="flex items-center gap-2 text-(--brutal-red) font-bold hover:underline"
                       disabled={isLoading}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -129,22 +129,22 @@ export default function CartPage() {
 
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-[var(--brutal-gray-600)]">
+                  <span className="text-(--brutal-gray-600)">
                     Subtotal ({cart.itemCount} items)
                   </span>
                   <span className="font-bold">{formatPrice(cart.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--brutal-gray-600)]">Shipping</span>
-                  <span className="text-[var(--brutal-gray-500)]">Calculated at checkout</span>
+                  <span className="text-(--brutal-gray-600)">Shipping</span>
+                  <span className="text-(--brutal-gray-500)">Calculated at checkout</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--brutal-gray-600)]">Tax</span>
-                  <span className="text-[var(--brutal-gray-500)]">Calculated at checkout</span>
+                  <span className="text-(--brutal-gray-600)">Tax</span>
+                  <span className="text-(--brutal-gray-500)">Calculated at checkout</span>
                 </div>
               </div>
 
-              <div className="border-t-2 border-[var(--brutal-gray-200)] mt-6 pt-6">
+              <div className="border-t-2 border-(--brutal-gray-200) mt-6 pt-6">
                 <div className="flex justify-between text-xl">
                   <span className="font-bold">Estimated Total</span>
                   <span className="font-black">{formatPrice(cart.subtotal)}</span>
@@ -166,7 +166,7 @@ export default function CartPage() {
                 Continue Shopping
               </Link>
 
-              <p className="text-sm text-center text-[var(--brutal-gray-600)] mt-6">
+              <p className="text-sm text-center text-(--brutal-gray-600) mt-6">
                 Free shipping on orders over $75
               </p>
             </div>

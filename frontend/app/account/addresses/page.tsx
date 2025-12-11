@@ -99,10 +99,10 @@ export default function AddressesPage() {
     return (
         <div className="space-y-6">
             <div className="brutal-card">
-                <div className="p-6 border-b-2 border-[var(--brutal-gray-200)] flex items-center justify-between">
+                <div className="p-6 border-b-2 border-(--brutal-gray-200) flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-black">Saved Addresses</h2>
-                        <p className="text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-(--brutal-gray-600) mt-1">
                             Manage your shipping and billing addresses
                         </p>
                     </div>
@@ -119,7 +119,7 @@ export default function AddressesPage() {
 
                 {/* Add/Edit Form */}
                 {isAdding && (
-                    <form onSubmit={handleSubmit} className="p-6 border-b-2 border-[var(--brutal-gray-200)] bg-[var(--brutal-gray-50)]">
+                    <form onSubmit={handleSubmit} className="p-6 border-b-2 border-(--brutal-gray-200) bg-(--brutal-gray-50)">
                         <h3 className="font-black mb-4">
                             {editingId ? 'Edit Address' : 'Add New Address'}
                         </h3>
@@ -218,18 +218,18 @@ export default function AddressesPage() {
                 {/* Address List */}
                 {addresses.length === 0 && !isAdding ? (
                     <div className="p-12 text-center">
-                        <MapPin className="w-16 h-16 mx-auto text-[var(--brutal-gray-300)] mb-4" />
+                        <MapPin className="w-16 h-16 mx-auto text-(--brutal-gray-300) mb-4" />
                         <h3 className="text-xl font-black">No Addresses Saved</h3>
-                        <p className="text-[var(--brutal-gray-600)] mt-2">
+                        <p className="text-(--brutal-gray-600) mt-2">
                             Add an address to speed up checkout
                         </p>
                     </div>
                 ) : (
-                    <div className="divide-y-2 divide-[var(--brutal-gray-200)]">
+                    <div className="divide-y-2 divide-(--brutal-gray-200)">
                         {addresses.map((address) => (
                             <div key={address.id} className="p-6 flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-4">
-                                    <MapPin className="w-5 h-5 text-[var(--brutal-gray-500)] mt-1 flex-shrink-0" />
+                                    <MapPin className="w-5 h-5 text-(--brutal-gray-500) mt-1 shrink-0" />
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <p className="font-bold">{address.firstName} {address.lastName}</p>
@@ -237,12 +237,12 @@ export default function AddressesPage() {
                                                 <span className="brutal-badge brutal-badge-green text-xs">Default</span>
                                             )}
                                         </div>
-                                        <p className="text-[var(--brutal-gray-600)]">{address.line1}</p>
-                                        {address.line2 && <p className="text-[var(--brutal-gray-600)]">{address.line2}</p>}
-                                        <p className="text-[var(--brutal-gray-600)]">
+                                        <p className="text-(--brutal-gray-600)">{address.line1}</p>
+                                        {address.line2 && <p className="text-(--brutal-gray-600)">{address.line2}</p>}
+                                        <p className="text-(--brutal-gray-600)">
                                             {address.city}, {address.state} {address.postalCode}
                                         </p>
-                                        <p className="text-[var(--brutal-gray-600)]">{address.country}</p>
+                                        <p className="text-(--brutal-gray-600)">{address.country}</p>
                                     </div>
                                 </div>
 
@@ -250,7 +250,7 @@ export default function AddressesPage() {
                                     {!address.isDefault && (
                                         <button
                                             onClick={() => setDefault(address.id)}
-                                            className="p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                                            className="p-2 hover:bg-(--brutal-gray-100) transition-colors"
                                             title="Set as default"
                                         >
                                             <Check className="w-4 h-4" />
@@ -258,14 +258,14 @@ export default function AddressesPage() {
                                     )}
                                     <button
                                         onClick={() => handleEdit(address)}
-                                        className="p-2 hover:bg-[var(--brutal-gray-100)] transition-colors"
+                                        className="p-2 hover:bg-(--brutal-gray-100) transition-colors"
                                         title="Edit"
                                     >
                                         <Edit className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(address.id)}
-                                        className="p-2 hover:bg-[var(--brutal-gray-100)] text-[var(--brutal-red)] transition-colors"
+                                        className="p-2 hover:bg-(--brutal-gray-100) text-(--brutal-red) transition-colors"
                                         title="Delete"
                                     >
                                         <Trash2 className="w-4 h-4" />
