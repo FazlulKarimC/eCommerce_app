@@ -210,7 +210,7 @@ export class ProductService {
 
         const where: Prisma.ProductWhereInput = {
             deletedAt: null,
-            ...(status && { status }),
+            status: status || 'ACTIVE', // Default to ACTIVE for storefront
             ...(featured !== undefined && { featured }),
             ...(search && {
                 OR: [
@@ -245,6 +245,61 @@ export class ProductService {
             }),
         };
 
+        // Handle special sort cases
+        // Price sorting requires special handling since price is on variants relation
+        const isPriceSort = sort === 'price';
+
+        let orderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[];
+
+        if (sort === 'featured') {
+            // Featured products first, then by createdAt
+            orderBy = [
+                { featured: 'desc' },
+                { createdAt: 'desc' },
+            ];
+        } else if (!isPriceSort) {
+            // Standard field sorting (title, createdAt, updatedAt)
+            orderBy = { [sort]: order };
+        } else {
+            // For price sort, we'll sort by createdAt first, then re-sort in memory
+            orderBy = { createdAt: 'desc' };
+        }
+
+        if (isPriceSort) {
+            // For price sorting, we need to fetch all matching products and sort in memory
+            // This is less efficient but gives correct results for relation-based sorting
+            const allProducts = await prisma.product.findMany({
+                where,
+                include: {
+                    variants: { orderBy: { position: 'asc' }, take: 1 },
+                    images: { orderBy: { position: 'asc' }, take: 1 },
+                    collections: { include: { collection: true } },
+                    categories: { include: { category: true } },
+                    _count: { select: { reviews: true } },
+                },
+            });
+
+            // Sort by first variant price
+            const sortedProducts = allProducts.sort((a, b) => {
+                const priceA = a.variants[0]?.price?.toNumber?.() ?? a.variants[0]?.price ?? 0;
+                const priceB = b.variants[0]?.price?.toNumber?.() ?? b.variants[0]?.price ?? 0;
+                return order === 'asc' ? priceA - priceB : priceB - priceA;
+            });
+
+            // Apply pagination
+            const paginatedProducts = sortedProducts.slice((page - 1) * limit, page * limit);
+
+            return {
+                products: paginatedProducts,
+                pagination: {
+                    page,
+                    limit,
+                    total: allProducts.length,
+                    totalPages: Math.ceil(allProducts.length / limit),
+                },
+            };
+        }
+
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where,
@@ -255,7 +310,7 @@ export class ProductService {
                     categories: { include: { category: true } },
                     _count: { select: { reviews: true } },
                 },
-                orderBy: { [sort]: order },
+                orderBy,
                 skip: (page - 1) * limit,
                 take: limit,
             }),

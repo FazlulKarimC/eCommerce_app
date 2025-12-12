@@ -57,7 +57,7 @@ export const productQuerySchema = z.object({
     tag: z.string().optional(),
     minPrice: z.string().optional().transform((val) => val ? parseFloat(val) : undefined),
     maxPrice: z.string().optional().transform((val) => val ? parseFloat(val) : undefined),
-    sort: z.enum(['title', 'price', 'createdAt', 'updatedAt']).optional().default('createdAt'),
+    sort: z.enum(['title', 'price', 'createdAt', 'updatedAt', 'featured']).optional().default('createdAt'),
     order: z.enum(['asc', 'desc']).optional().default('desc'),
     featured: z.string().optional().transform((val) => val === 'true' ? true : val === 'false' ? false : undefined),
 });

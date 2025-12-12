@@ -75,7 +75,7 @@ function FilterSidebar({
                     >
                         All
                     </button>
-                    {categories?.map((cat) => (
+                    {categories?.filter((cat) => !['men', 'women'].includes(cat.slug.toLowerCase())).map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => setSelectedCategory(cat.slug)}
@@ -134,6 +134,8 @@ function ProductsPageContent() {
                 return { sort: "price" as const, order: "desc" as const }
             case "newest":
                 return { sort: "createdAt" as const, order: "desc" as const }
+            case "featured":
+                return { sort: "featured" as const, order: "desc" as const }
             default:
                 return { sort: "createdAt" as const, order: "desc" as const }
         }

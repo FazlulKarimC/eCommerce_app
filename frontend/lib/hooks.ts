@@ -31,7 +31,7 @@ interface ProductQueryParams {
     tag?: string;
     minPrice?: number;
     maxPrice?: number;
-    sort?: 'title' | 'price' | 'createdAt';
+    sort?: 'title' | 'price' | 'createdAt' | 'featured';
     order?: 'asc' | 'desc';
     featured?: boolean;
 }

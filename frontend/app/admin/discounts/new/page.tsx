@@ -67,7 +67,7 @@ export default function NewDiscountPage() {
             <div className="mb-8">
                 <Link
                     href="/admin/discounts"
-                    className="inline-flex items-center gap-2 text-[var(--brutal-gray-600)] hover:text-[var(--brutal-black)] mb-4"
+                    className="inline-flex items-center gap-2 text-(--brutal-gray-600) hover:text-(--brutal-black) mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Discounts
@@ -77,14 +77,14 @@ export default function NewDiscountPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-[var(--brutal-red)] text-white p-4 border-2 border-[var(--brutal-black)]">
+                    <div className="bg-(--brutal-red) text-white p-4 border-2 border-(--brutal-black)">
                         {error}
                     </div>
                 )}
 
                 {/* Basic Info */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Discount Details
                     </h2>
 
@@ -96,7 +96,7 @@ export default function NewDiscountPage() {
                             placeholder="SAVE20"
                         />
                         {errors.code && (
-                            <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.code.message}</p>
+                            <p className="text-(--brutal-red) text-sm mt-1">{errors.code.message}</p>
                         )}
                     </div>
 
@@ -121,7 +121,7 @@ export default function NewDiscountPage() {
                                 placeholder={discountType === 'PERCENTAGE' ? '10' : '5.00'}
                             />
                             {errors.value && (
-                                <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.value.message}</p>
+                                <p className="text-(--brutal-red) text-sm mt-1">{errors.value.message}</p>
                             )}
                         </div>
                     </div>
@@ -135,7 +135,7 @@ export default function NewDiscountPage() {
                             className="brutal-input"
                             placeholder="0.00"
                         />
-                        <p className="text-sm text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-sm text-(--brutal-gray-600) mt-1">
                             Leave empty for no minimum
                         </p>
                     </div>
@@ -143,7 +143,7 @@ export default function NewDiscountPage() {
 
                 {/* Limits */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Usage Limits
                     </h2>
 
@@ -155,7 +155,7 @@ export default function NewDiscountPage() {
                             className="brutal-input"
                             placeholder="Unlimited"
                         />
-                        <p className="text-sm text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-sm text-(--brutal-gray-600) mt-1">
                             Leave empty for unlimited uses
                         </p>
                     </div>
@@ -188,7 +188,7 @@ export default function NewDiscountPage() {
                             {...register('isActive')}
                             type="checkbox"
                             id="isActive"
-                            className="w-5 h-5 border-2 border-[var(--brutal-black)]"
+                            className="w-5 h-5 border-2 border-(--brutal-black)"
                         />
                         <label htmlFor="isActive" className="font-bold">
                             Active (customers can use this code)

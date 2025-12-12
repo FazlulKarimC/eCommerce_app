@@ -78,7 +78,7 @@ export default function AdminProductsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black">Products</h1>
-                    <p className="text-[var(--brutal-gray-600)]">
+                    <p className="text-(--brutal-gray-600)">
                         {pagination.total} products total
                     </p>
                 </div>
@@ -92,7 +92,7 @@ export default function AdminProductsPage() {
             <div className="brutal-card p-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--brutal-gray-400)]" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--brutal-gray-400)" />
                         <input
                             type="text"
                             placeholder="Search products..."
@@ -124,20 +124,20 @@ export default function AdminProductsPage() {
             <div className="brutal-card overflow-hidden">
                 {isLoading ? (
                     <div className="p-12 text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-[var(--brutal-gray-400)]" />
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-(--brutal-gray-400)" />
                     </div>
                 ) : products.length === 0 ? (
                     <div className="p-12 text-center">
-                        <Package className="w-12 h-12 mx-auto text-[var(--brutal-gray-300)] mb-4" />
+                        <Package className="w-12 h-12 mx-auto text-(--brutal-gray-300) mb-4" />
                         <h3 className="font-black">No products found</h3>
-                        <p className="text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-(--brutal-gray-600) mt-1">
                             {search || status ? 'Try adjusting your filters' : 'Add your first product'}
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-[var(--brutal-gray-100)] border-b-2 border-[var(--brutal-black)]">
+                            <thead className="bg-(--brutal-gray-100) border-b-2 border-(--brutal-black)">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-black uppercase">
                                         Product
@@ -156,7 +156,7 @@ export default function AdminProductsPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--brutal-gray-200)]">
+                            <tbody className="divide-y divide-(--brutal-gray-200)">
                                 {products.map((product) => {
                                     const variant = product.variants[0];
                                     const image = product.images[0];
@@ -166,10 +166,10 @@ export default function AdminProductsPage() {
                                     );
 
                                     return (
-                                        <tr key={product.id} className="hover:bg-[var(--brutal-gray-50)]">
+                                        <tr key={product.id} className="hover:bg-(--brutal-gray-50)">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-[var(--brutal-gray-100)] border-2 border-[var(--brutal-black)] flex-shrink-0 relative overflow-hidden">
+                                                    <div className="w-12 h-12 bg-(--brutal-gray-100) border-2 border-(--brutal-black) shrink-0 relative overflow-hidden">
                                                         {image ? (
                                                             <Image
                                                                 src={image.url}
@@ -179,19 +179,19 @@ export default function AdminProductsPage() {
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center">
-                                                                <Package className="w-5 h-5 text-[var(--brutal-gray-300)]" />
+                                                                <Package className="w-5 h-5 text-(--brutal-gray-300)" />
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div>
                                                         <Link
                                                             href={`/admin/products/${product.id}`}
-                                                            className="font-bold hover:text-[var(--brutal-red)]"
+                                                            className="font-bold hover:text-(--brutal-red)"
                                                         >
                                                             {product.title}
                                                         </Link>
                                                         {product.featured && (
-                                                            <span className="ml-2 text-xs text-[var(--brutal-yellow)] font-bold">
+                                                            <span className="ml-2 text-xs text-(--brutal-yellow) font-bold">
                                                                 ★ Featured
                                                             </span>
                                                         )}
@@ -209,8 +209,8 @@ export default function AdminProductsPage() {
                                             <td className="px-6 py-4">
                                                 <span className={cn(
                                                     'font-bold',
-                                                    totalInventory <= 0 && 'text-[var(--brutal-red)]',
-                                                    totalInventory > 0 && totalInventory <= 10 && 'text-[var(--brutal-orange)]'
+                                                    totalInventory <= 0 && 'text-(--brutal-red)',
+                                                    totalInventory > 0 && totalInventory <= 10 && 'text-(--brutal-orange)'
                                                 )}>
                                                     {totalInventory}
                                                 </span>
@@ -219,7 +219,7 @@ export default function AdminProductsPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
                                                         href={`/admin/products/${product.id}`}
-                                                        className="p-2 hover:bg-[var(--brutal-gray-100)] rounded"
+                                                        className="p-2 hover:bg-(--brutal-gray-100) rounded"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -227,7 +227,7 @@ export default function AdminProductsPage() {
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.title)}
                                                         disabled={deleteProduct.isPending}
-                                                        className="p-2 hover:bg-[var(--brutal-red)] hover:text-white rounded transition-colors"
+                                                        className="p-2 hover:bg-(--brutal-red) hover:text-white rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -244,8 +244,8 @@ export default function AdminProductsPage() {
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                    <div className="p-4 border-t-2 border-[var(--brutal-gray-200)] flex items-center justify-between">
-                        <p className="text-sm text-[var(--brutal-gray-600)]">
+                    <div className="p-4 border-t-2 border-(--brutal-gray-200) flex items-center justify-between">
+                        <p className="text-sm text-(--brutal-gray-600)">
                             Page {pagination.page} of {pagination.totalPages}
                         </p>
                         <div className="flex gap-2">

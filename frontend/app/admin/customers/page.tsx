@@ -40,7 +40,7 @@ export default function AdminCustomersPage() {
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-black">Customers</h1>
-                <p className="text-[var(--brutal-gray-600)]">
+                <p className="text-(--brutal-gray-600)">
                     {pagination.total} customers total
                 </p>
             </div>
@@ -48,7 +48,7 @@ export default function AdminCustomersPage() {
             {/* Search */}
             <div className="brutal-card p-4">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--brutal-gray-400)]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--brutal-gray-400)" />
                     <input
                         type="text"
                         placeholder="Search by name or email..."
@@ -66,20 +66,20 @@ export default function AdminCustomersPage() {
             <div className="brutal-card overflow-hidden">
                 {isLoading ? (
                     <div className="p-12 text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-[var(--brutal-gray-400)]" />
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-(--brutal-gray-400)" />
                     </div>
                 ) : customers.length === 0 ? (
                     <div className="p-12 text-center">
-                        <Users className="w-12 h-12 mx-auto text-[var(--brutal-gray-300)] mb-4" />
+                        <Users className="w-12 h-12 mx-auto text-(--brutal-gray-300) mb-4" />
                         <h3 className="font-black">No customers found</h3>
-                        <p className="text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-(--brutal-gray-600) mt-1">
                             {search ? 'Try adjusting your search' : 'Customers will appear here'}
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-[var(--brutal-gray-100)] border-b-2 border-[var(--brutal-black)]">
+                            <thead className="bg-(--brutal-gray-100) border-b-2 border-(--brutal-black)">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-black uppercase">
                                         Customer
@@ -98,12 +98,12 @@ export default function AdminCustomersPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--brutal-gray-200)]">
+                            <tbody className="divide-y divide-(--brutal-gray-200)">
                                 {customers.map((customer: any) => (
-                                    <tr key={customer.id} className="hover:bg-[var(--brutal-gray-50)]">
+                                    <tr key={customer.id} className="hover:bg-(--brutal-gray-50)">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-[var(--brutal-yellow)] text-[var(--brutal-black)] rounded-full flex items-center justify-center font-black">
+                                                <div className="w-10 h-10 bg-(--brutal-yellow) text-(--brutal-black) rounded-full flex items-center justify-center font-black">
                                                     {customer.name?.charAt(0) || '?'}
                                                 </div>
                                                 <span className="font-bold">
@@ -113,13 +113,13 @@ export default function AdminCustomersPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-sm">
-                                                <Mail className="w-4 h-4 text-[var(--brutal-gray-400)]" />
+                                                <Mail className="w-4 h-4 text-(--brutal-gray-400)" />
                                                 {customer.email}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <ShoppingBag className="w-4 h-4 text-[var(--brutal-gray-400)]" />
+                                                <ShoppingBag className="w-4 h-4 text-(--brutal-gray-400)" />
                                                 <span className="font-bold">
                                                     {customer._count?.orders || 0}
                                                 </span>
@@ -128,7 +128,7 @@ export default function AdminCustomersPage() {
                                         <td className="px-6 py-4 font-bold">
                                             {formatPrice(customer.totalSpent || 0)}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-[var(--brutal-gray-600)]">
+                                        <td className="px-6 py-4 text-sm text-(--brutal-gray-600)">
                                             {new Date(customer.createdAt).toLocaleDateString()}
                                         </td>
                                     </tr>
@@ -140,8 +140,8 @@ export default function AdminCustomersPage() {
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                    <div className="p-4 border-t-2 border-[var(--brutal-gray-200)] flex items-center justify-between">
-                        <p className="text-sm text-[var(--brutal-gray-600)]">
+                    <div className="p-4 border-t-2 border-(--brutal-gray-200) flex items-center justify-between">
+                        <p className="text-sm text-(--brutal-gray-600)">
                             Page {pagination.page} of {pagination.totalPages}
                         </p>
                         <div className="flex gap-2">

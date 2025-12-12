@@ -90,7 +90,7 @@ export default function EditProductPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-[var(--brutal-gray-400)]" />
+                <Loader2 className="w-8 h-8 animate-spin text-(--brutal-gray-400)" />
             </div>
         );
     }
@@ -113,7 +113,7 @@ export default function EditProductPage() {
             <div className="mb-8">
                 <Link
                     href="/admin/products"
-                    className="inline-flex items-center gap-2 text-[var(--brutal-gray-600)] hover:text-[var(--brutal-black)] mb-4"
+                    className="inline-flex items-center gap-2 text-(--brutal-gray-600) hover:text-(--brutal-black) mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Products
@@ -123,7 +123,7 @@ export default function EditProductPage() {
                     <button
                         onClick={handleDelete}
                         disabled={deleteProduct.isPending}
-                        className="brutal-btn text-[var(--brutal-red)] hover:bg-[var(--brutal-red)] hover:text-white"
+                        className="brutal-btn text-(--brutal-red) hover:bg-(--brutal-red) hover:text-white"
                     >
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -133,20 +133,20 @@ export default function EditProductPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-[var(--brutal-red)] text-white p-4 border-2 border-[var(--brutal-black)]">
+                    <div className="bg-(--brutal-red) text-white p-4 border-2 border-(--brutal-black)">
                         {error}
                     </div>
                 )}
 
                 {updateProduct.isSuccess && (
-                    <div className="bg-[var(--brutal-green)] text-white p-4 border-2 border-[var(--brutal-black)]">
+                    <div className="bg-(--brutal-green) text-white p-4 border-2 border-(--brutal-black)">
                         Product updated successfully!
                     </div>
                 )}
 
                 {/* Basic Info */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Basic Information
                     </h2>
 
@@ -158,7 +158,7 @@ export default function EditProductPage() {
                             placeholder="Product title"
                         />
                         {errors.title && (
-                            <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.title.message}</p>
+                            <p className="text-(--brutal-red) text-sm mt-1">{errors.title.message}</p>
                         )}
                     </div>
 
@@ -170,7 +170,7 @@ export default function EditProductPage() {
                             placeholder="Product description"
                         />
                         {errors.description && (
-                            <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.description.message}</p>
+                            <p className="text-(--brutal-red) text-sm mt-1">{errors.description.message}</p>
                         )}
                     </div>
 
@@ -186,7 +186,7 @@ export default function EditProductPage() {
 
                 {/* Status */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Status & Visibility
                     </h2>
 
@@ -205,7 +205,7 @@ export default function EditProductPage() {
                                 {...register('featured')}
                                 type="checkbox"
                                 id="featured"
-                                className="w-5 h-5 border-2 border-[var(--brutal-black)]"
+                                className="w-5 h-5 border-2 border-(--brutal-black)"
                             />
                             <label htmlFor="featured" className="font-bold">
                                 Featured Product
@@ -217,12 +217,12 @@ export default function EditProductPage() {
                 {/* Variants Info (Read-only) */}
                 {product.variants && product.variants.length > 0 && (
                     <div className="brutal-card p-6">
-                        <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                        <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                             Variants ({product.variants.length})
                         </h2>
                         <div className="space-y-2">
                             {product.variants.map((v: any) => (
-                                <div key={v.id} className="flex items-center justify-between p-3 bg-[var(--brutal-gray-100)]">
+                                <div key={v.id} className="flex items-center justify-between p-3 bg-(--brutal-gray-100)">
                                     <span className="font-bold">{v.title}</span>
                                     <div className="flex gap-4 text-sm">
                                         <span>${v.price}</span>

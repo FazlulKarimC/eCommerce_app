@@ -108,7 +108,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black">Dashboard</h1>
-                    <p className="text-[var(--brutal-gray-600)]">
+                    <p className="text-(--brutal-gray-600)">
                         Welcome back! Here's what's happening today.
                     </p>
                 </div>
@@ -134,15 +134,15 @@ export default function AdminDashboard() {
                                 <div className={`p-3 ${stat.color} text-white`}>
                                     <Icon className="w-6 h-6" />
                                 </div>
-                                <TrendingUp className="w-4 h-4 text-[var(--brutal-green)]" />
+                                <TrendingUp className="w-4 h-4 text-(--brutal-green)" />
                             </div>
                             <div className="mt-4">
                                 {isLoading ? (
-                                    <div className="h-8 w-20 bg-[var(--brutal-gray-200)] animate-pulse" />
+                                    <div className="h-8 w-20 bg-(--brutal-gray-200) animate-pulse" />
                                 ) : (
                                     <p className="text-3xl font-black">{stat.value}</p>
                                 )}
-                                <p className="text-[var(--brutal-gray-600)] text-sm mt-1">
+                                <p className="text-(--brutal-gray-600) text-sm mt-1">
                                     {stat.title}
                                 </p>
                             </div>
@@ -153,11 +153,11 @@ export default function AdminDashboard() {
 
             {/* Recent Orders */}
             <div className="brutal-card">
-                <div className="p-6 border-b-2 border-[var(--brutal-gray-200)] flex items-center justify-between">
+                <div className="p-6 border-b-2 border-(--brutal-gray-200) flex items-center justify-between">
                     <h2 className="text-xl font-black">Recent Orders</h2>
                     <Link
                         href="/admin/orders"
-                        className="text-sm font-bold text-[var(--brutal-red)] hover:underline flex items-center gap-1"
+                        className="text-sm font-bold text-(--brutal-red) hover:underline flex items-center gap-1"
                     >
                         View All <ArrowRight className="w-4 h-4" />
                     </Link>
@@ -168,22 +168,22 @@ export default function AdminDashboard() {
                         <div className="space-y-4">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="flex gap-4 animate-pulse">
-                                    <div className="w-24 h-5 bg-[var(--brutal-gray-200)]" />
-                                    <div className="w-48 h-5 bg-[var(--brutal-gray-200)]" />
-                                    <div className="w-20 h-5 bg-[var(--brutal-gray-200)]" />
+                                    <div className="w-24 h-5 bg-(--brutal-gray-200)" />
+                                    <div className="w-48 h-5 bg-(--brutal-gray-200)" />
+                                    <div className="w-20 h-5 bg-(--brutal-gray-200)" />
                                 </div>
                             ))}
                         </div>
                     </div>
                 ) : stats?.recentOrders.length === 0 ? (
                     <div className="p-12 text-center">
-                        <ShoppingCart className="w-12 h-12 mx-auto text-[var(--brutal-gray-300)] mb-4" />
+                        <ShoppingCart className="w-12 h-12 mx-auto text-(--brutal-gray-300) mb-4" />
                         <p className="font-bold">No orders yet</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-[var(--brutal-gray-100)]">
+                            <thead className="bg-(--brutal-gray-100)">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-wider">
                                         Order
@@ -202,13 +202,13 @@ export default function AdminDashboard() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--brutal-gray-200)]">
+                            <tbody className="divide-y divide-(--brutal-gray-200)">
                                 {stats?.recentOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-[var(--brutal-gray-50)]">
+                                    <tr key={order.id} className="hover:bg-(--brutal-gray-50)">
                                         <td className="px-6 py-4">
                                             <Link
                                                 href={`/admin/orders/${order.id}`}
-                                                className="font-bold hover:text-[var(--brutal-red)]"
+                                                className="font-bold hover:text-(--brutal-red)"
                                             >
                                                 #{order.orderNumber}
                                             </Link>
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
                                                 {order.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-[var(--brutal-gray-600)]">
+                                        <td className="px-6 py-4 text-sm text-(--brutal-gray-600)">
                                             <div className="flex items-center gap-1">
                                                 <Clock className="w-3 h-3" />
                                                 {new Date(order.createdAt).toLocaleDateString()}
@@ -236,26 +236,26 @@ export default function AdminDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Link href="/admin/products/new" className="brutal-card p-6 hover:bg-[var(--brutal-gray-50)] transition-colors group">
-                    <Package className="w-8 h-8 text-[var(--brutal-orange)] mb-4" />
-                    <h3 className="font-black group-hover:text-[var(--brutal-red)]">Add Product</h3>
-                    <p className="text-sm text-[var(--brutal-gray-600)] mt-1">
+                <Link href="/admin/products/new" className="brutal-card p-6 hover:bg-(--brutal-gray-50) transition-colors group">
+                    <Package className="w-8 h-8 text-(--brutal-orange) mb-4" />
+                    <h3 className="font-black group-hover:text-(--brutal-red)">Add Product</h3>
+                    <p className="text-sm text-(--brutal-gray-600) mt-1">
                         Create a new product listing
                     </p>
                 </Link>
 
-                <Link href="/admin/discounts/new" className="brutal-card p-6 hover:bg-[var(--brutal-gray-50)] transition-colors group">
-                    <DollarSign className="w-8 h-8 text-[var(--brutal-green)] mb-4" />
-                    <h3 className="font-black group-hover:text-[var(--brutal-red)]">Create Discount</h3>
-                    <p className="text-sm text-[var(--brutal-gray-600)] mt-1">
+                <Link href="/admin/discounts/new" className="brutal-card p-6 hover:bg-(--brutal-gray-50) transition-colors group">
+                    <DollarSign className="w-8 h-8 text-(--brutal-green) mb-4" />
+                    <h3 className="font-black group-hover:text-(--brutal-red)">Create Discount</h3>
+                    <p className="text-sm text-(--brutal-gray-600) mt-1">
                         Set up a new discount code
                     </p>
                 </Link>
 
-                <Link href="/admin/orders" className="brutal-card p-6 hover:bg-[var(--brutal-gray-50)] transition-colors group">
-                    <ShoppingCart className="w-8 h-8 text-[var(--brutal-blue)] mb-4" />
-                    <h3 className="font-black group-hover:text-[var(--brutal-red)]">Manage Orders</h3>
-                    <p className="text-sm text-[var(--brutal-gray-600)] mt-1">
+                <Link href="/admin/orders" className="brutal-card p-6 hover:bg-(--brutal-gray-50) transition-colors group">
+                    <ShoppingCart className="w-8 h-8 text-(--brutal-blue) mb-4" />
+                    <h3 className="font-black group-hover:text-(--brutal-red)">Manage Orders</h3>
+                    <p className="text-sm text-(--brutal-gray-600) mt-1">
                         View and update order statuses
                     </p>
                 </Link>

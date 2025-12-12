@@ -431,7 +431,7 @@ className="text-yellow-400"  // BAD
 className="shadow-lg"  // BAD - breaks brutalist aesthetic
 
 // ❌ Never use gradients
-className="bg-gradient-to-r from-red-500 to-yellow-400"  // BAD
+className="bg-linear-to-r from-red-500 to-yellow-400"  // BAD
 
 // ❌ Never use more than 4 colors
 // Only: Yellow (#FACC15), Red (#EF4444), Black (#000), White (#FFF/FAFAFA)

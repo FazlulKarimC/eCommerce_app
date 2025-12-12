@@ -225,7 +225,7 @@ export default function TrackOrderPage() {
                             <div className="divide-y-4 divide-black">
                                 {order.items.map((item) => (
                                     <div key={item.id} className="p-6 flex gap-4">
-                                        <div className="w-16 h-16 bg-gray-100 border-4 border-black rounded-lg flex-shrink-0 relative overflow-hidden">
+                                        <div className="w-16 h-16 bg-gray-100 border-4 border-black rounded-lg shrink-0 relative overflow-hidden">
                                             {item.productImage ? (
                                                 <Image
                                                     src={item.productImage}
