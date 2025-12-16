@@ -62,7 +62,7 @@ export default function AddressesPage() {
         } else {
             const newAddress: Address = {
                 ...formData,
-                id: Date.now().toString(),
+                id: crypto.randomUUID(),
                 isDefault: addresses.length === 0,
             };
             setAddresses(prev => [...prev, newAddress]);

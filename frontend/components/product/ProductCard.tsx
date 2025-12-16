@@ -16,8 +16,9 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
     const { addItem, isLoading } = useCartStore();
 
-    const firstVariant = product.variants[0];
-    const firstImage = product.images[0];
+    // Safe array access - guard against empty arrays
+    const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    const firstImage = product.images && product.images.length > 0 ? product.images[0] : null;
 
     const price = firstVariant?.price ? parseFloat(String(firstVariant.price)) : 0;
     const compareAtPrice = firstVariant?.compareAtPrice

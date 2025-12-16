@@ -74,6 +74,11 @@ export default function EditProductPage() {
         onSuccess: () => {
             router.push('/admin/products');
         },
+        onError: (err: any) => {
+            const message = err.response?.data?.message || 'Failed to delete product. Please try again.';
+            console.error('Delete product failed:', err);
+            setError(message);
+        },
     });
 
     const onSubmit = (data: ProductFormData) => {

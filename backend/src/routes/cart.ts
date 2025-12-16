@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { cartService } from '../services/cart.service';
 import { validateBody, validateParams } from '../middleware/validate';
 import { optionalAuth } from '../middleware/auth';
@@ -17,8 +18,8 @@ function getCartIdentifier(req: Request): { customerId?: string; sessionId?: str
     let sessionId = req.headers['x-session-id'] as string || req.cookies?.sessionId;
 
     if (!sessionId) {
-        // Generate new session ID using crypto
-        sessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Generate new session ID using cryptographically secure random UUID
+        sessionId = `sess_${crypto.randomUUID()}`;
     }
 
     return { sessionId };

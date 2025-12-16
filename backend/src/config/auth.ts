@@ -32,7 +32,6 @@ export const auth = betterAuth({
                 defaultValue: "CUSTOMER",
             },
         },
-        // Map the image field to avatarUrl in our schema
         changeEmail: {
             enabled: true,
         }

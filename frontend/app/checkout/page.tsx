@@ -360,7 +360,7 @@ export default function CheckoutPage() {
 
                 {/* Discount Code */}
                 <div className="border-t-4 border-black pt-4 mb-4">
-                  <label className="font-bold text-sm block mb-2 flex items-center gap-2">
+                  <label className="font-bold text-sm mb-2 flex items-center gap-2">
                     <Tag className="w-4 h-4" />
                     Discount Code
                   </label>

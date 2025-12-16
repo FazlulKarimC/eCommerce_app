@@ -22,13 +22,12 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Response interceptor to handle 401s (optional specific handling)
+// Response interceptor - components handle 401s themselves
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        if (error.response?.status === 401) {
-            // Optional: Redirect to login or handled by component
-        }
+        // 401 handling delegated to individual components/pages
+        // They can redirect to login or show appropriate UI based on context
         return Promise.reject(error);
     }
 );

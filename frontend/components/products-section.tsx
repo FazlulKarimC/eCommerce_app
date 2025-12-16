@@ -73,7 +73,8 @@ export function ProductsSection() {
 
                 <Button
                   size="icon"
-                  className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity border-4 border-black shadow-xs hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none rounded-lg"
+                  aria-label="Add to cart"
+                  className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity border-4 border-black shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none rounded-lg"
                 >
                   <ShoppingBag className="h-4 w-4" />
                 </Button>

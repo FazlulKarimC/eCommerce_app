@@ -20,11 +20,29 @@ const router = Router();
 // ==================== CUSTOMER ROUTES ====================
 
 // Get order by order number (public - for thank you page)
+// Returns minimal info for unauthenticated users, full details for owner/staff
 router.get(
   '/number/:orderNumber',
+  optionalAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const order = await orderService.findByOrderNumber(req.params.orderNumber);
+
+      // Check if user is owner or staff
+      const isOwner = req.user && order.customerId === req.user.userId;
+      const isStaff = req.user?.role === 'ADMIN' || req.user?.role === 'STAFF';
+
+      if (!isOwner && !isStaff) {
+        // Return minimal info for unauthenticated/unauthorized access
+        // Prevents exposing PII to anyone who guesses order numbers
+        res.json({
+          orderNumber: order.orderNumber,
+          status: order.status,
+          createdAt: order.createdAt,
+        });
+        return;
+      }
+
       res.json(order);
     } catch (error) {
       if (error instanceof Error && error.message === 'Order not found') {

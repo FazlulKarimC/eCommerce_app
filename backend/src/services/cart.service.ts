@@ -1,5 +1,37 @@
 import { prisma } from '../config/database';
 import { AddToCartInput } from '../validators/common.validator';
+import { Prisma } from '@prisma/client';
+
+// Type for cart with full includes
+type CartWithItems = Prisma.CartGetPayload<{
+    include: {
+        items: {
+            include: {
+                variant: {
+                    include: {
+                        product: {
+                            include: {
+                                images: true;
+                            };
+                        };
+                        optionValues: {
+                            include: {
+                                optionValue: {
+                                    include: {
+                                        option: true;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+}>;
+
+// Type for cart item in the includes
+type CartItemWithVariant = CartWithItems['items'][number];
 
 export class CartService {
     /**
@@ -55,58 +87,64 @@ export class CartService {
     }
 
     /**
-     * Add item to cart
+     * Add item to cart - uses atomic transaction to prevent race conditions
      */
     async addItem(cartId: string, input: AddToCartInput) {
-        const variant = await prisma.productVariant.findUnique({
-            where: { id: input.variantId },
-            include: { product: true },
-        });
+        return await prisma.$transaction(async (tx) => {
+            // Validate variant exists and is available
+            const variant = await tx.productVariant.findUnique({
+                where: { id: input.variantId },
+                include: { product: true },
+            });
 
-        if (!variant || variant.product.deletedAt || variant.product.status !== 'ACTIVE') {
-            throw new Error('Product variant not found or unavailable');
-        }
-
-        if (variant.inventoryQty < input.quantity) {
-            throw new Error('Insufficient inventory');
-        }
-
-        // Check if item already in cart
-        const existingItem = await prisma.cartItem.findUnique({
-            where: {
-                cartId_variantId: { cartId, variantId: input.variantId },
-            },
-        });
-
-        if (existingItem) {
-            // Update quantity
-            const newQuantity = existingItem.quantity + input.quantity;
-            if (newQuantity > variant.inventoryQty) {
-                throw new Error('Insufficient inventory');
+            if (!variant || variant.product.deletedAt || variant.product.status !== 'ACTIVE') {
+                throw new Error('Product variant not found or unavailable');
             }
 
-            await prisma.cartItem.update({
-                where: { id: existingItem.id },
-                data: { quantity: newQuantity },
-            });
-        } else {
-            // Add new item
-            await prisma.cartItem.create({
-                data: {
-                    cartId,
-                    variantId: input.variantId,
-                    quantity: input.quantity,
+            // Atomic upsert with quantity increment
+            const existingItem = await tx.cartItem.findUnique({
+                where: {
+                    cartId_variantId: { cartId, variantId: input.variantId },
                 },
             });
-        }
 
-        // Update cart timestamp
-        await prisma.cart.update({
-            where: { id: cartId },
-            data: { updatedAt: new Date() },
+            let resultItem;
+            if (existingItem) {
+                // Update quantity atomically
+                resultItem = await tx.cartItem.update({
+                    where: { id: existingItem.id },
+                    data: { quantity: { increment: input.quantity } },
+                });
+            } else {
+                // Create new item
+                resultItem = await tx.cartItem.create({
+                    data: {
+                        cartId,
+                        variantId: input.variantId,
+                        quantity: input.quantity,
+                    },
+                });
+            }
+
+            // Validate inventory AFTER the atomic update (within same transaction)
+            if (resultItem.quantity > variant.inventoryQty) {
+                throw new Error(`Insufficient inventory. Only ${variant.inventoryQty} available.`);
+            }
+
+            // Update cart timestamp
+            await tx.cart.update({
+                where: { id: cartId },
+                data: { updatedAt: new Date() },
+            });
+
+            // Return updated cart
+            const updatedCart = await tx.cart.findUnique({
+                where: { id: cartId },
+                include: this.getCartInclude(),
+            });
+
+            return this.formatCart(updatedCart!);
         });
-
-        return this.getCart(cartId);
     }
 
     /**
@@ -178,6 +216,7 @@ export class CartService {
 
     /**
      * Merge guest cart into customer cart on login
+     * Uses batch operations and proper inventory validation
      */
     async mergeCart(sessionId: string, userId: string) {
         const guestCart = await prisma.cart.findUnique({
@@ -189,52 +228,112 @@ export class CartService {
             return this.getOrCreateCart(userId);
         }
 
-        // Resolve Customer
-        let customer = await prisma.customer.findUnique({ where: { userId } });
-        if (!customer) {
-            customer = await prisma.customer.create({ data: { userId } });
-        }
-        const customerId = customer.id;
+        return await prisma.$transaction(async (tx) => {
+            // Resolve Customer
+            let customer = await tx.customer.findUnique({ where: { userId } });
+            if (!customer) {
+                customer = await tx.customer.create({ data: { userId } });
+            }
+            const customerId = customer.id;
 
-        // Get or create customer cart
-        let customerCart = await prisma.cart.findUnique({
-            where: { customerId },
-        });
-
-        if (!customerCart) {
-            customerCart = await prisma.cart.create({
-                data: { customerId },
-            });
-        }
-
-        // Merge items
-        for (const item of guestCart.items) {
-            const existingItem = await prisma.cartItem.findUnique({
-                where: {
-                    cartId_variantId: { cartId: customerCart.id, variantId: item.variantId },
-                },
+            // Get or create customer cart
+            let customerCart = await tx.cart.findUnique({
+                where: { customerId },
             });
 
-            if (existingItem) {
-                await prisma.cartItem.update({
-                    where: { id: existingItem.id },
-                    data: { quantity: existingItem.quantity + item.quantity },
-                });
-            } else {
-                await prisma.cartItem.create({
-                    data: {
-                        cartId: customerCart.id,
-                        variantId: item.variantId,
-                        quantity: item.quantity,
-                    },
+            if (!customerCart) {
+                customerCart = await tx.cart.create({
+                    data: { customerId },
                 });
             }
-        }
 
-        // Delete guest cart
-        await prisma.cart.delete({ where: { id: guestCart.id } });
+            // Collect all variant IDs from guest cart
+            const variantIds = guestCart.items.map(item => item.variantId);
 
-        return this.getCart(customerCart.id);
+            // Batch fetch: existing items in customer cart AND variant details for inventory check
+            const [existingItems, variants] = await Promise.all([
+                tx.cartItem.findMany({
+                    where: { cartId: customerCart.id, variantId: { in: variantIds } },
+                }),
+                tx.productVariant.findMany({
+                    where: { id: { in: variantIds } },
+                    include: { product: true },
+                }),
+            ]);
+
+            // Create lookup maps
+            const existingItemMap = new Map(existingItems.map(item => [item.variantId, item]));
+            const variantMap = new Map(variants.map(v => [v.id, v]));
+
+            // Prepare batch operations with inventory validation
+            const updateOperations: { id: string; quantity: number }[] = [];
+            const createData: { cartId: string; variantId: string; quantity: number }[] = [];
+
+            for (const guestItem of guestCart.items) {
+                const variant = variantMap.get(guestItem.variantId);
+
+                // Validate variant exists and product is active
+                if (!variant || variant.product.deletedAt || variant.product.status !== 'ACTIVE') {
+                    // Skip unavailable products (or throw if you prefer strict behavior)
+                    continue;
+                }
+
+                const existingItem = existingItemMap.get(guestItem.variantId);
+                const existingQty = existingItem?.quantity || 0;
+                const newQuantity = existingQty + guestItem.quantity;
+
+                // Validate inventory - cap at available if exceeds
+                const finalQuantity = Math.min(newQuantity, variant.inventoryQty);
+
+                if (finalQuantity <= 0) {
+                    continue; // Skip if no inventory
+                }
+
+                if (existingItem) {
+                    // Only update if quantity actually changes
+                    if (finalQuantity !== existingQty) {
+                        updateOperations.push({ id: existingItem.id, quantity: finalQuantity });
+                    }
+                } else {
+                    createData.push({
+                        cartId: customerCart.id,
+                        variantId: guestItem.variantId,
+                        quantity: finalQuantity,
+                    });
+                }
+            }
+
+            // Execute batch updates (Prisma doesn't have updateMany with different values, so we batch manual updates)
+            if (updateOperations.length > 0) {
+                await Promise.all(
+                    updateOperations.map(op =>
+                        tx.cartItem.update({
+                            where: { id: op.id },
+                            data: { quantity: op.quantity },
+                        })
+                    )
+                );
+            }
+
+            // Execute batch creates
+            if (createData.length > 0) {
+                await tx.cartItem.createMany({
+                    data: createData,
+                    skipDuplicates: true,
+                });
+            }
+
+            // Delete guest cart
+            await tx.cart.delete({ where: { id: guestCart.id } });
+
+            // Return merged cart
+            const mergedCart = await tx.cart.findUnique({
+                where: { id: customerCart.id },
+                include: this.getCartInclude(),
+            });
+
+            return this.formatCart(mergedCart!);
+        });
     }
 
     private getCartInclude() {
@@ -260,8 +359,8 @@ export class CartService {
         };
     }
 
-    private formatCart(cart: any) {
-        const items = cart.items.map((item: any) => ({
+    private formatCart(cart: CartWithItems) {
+        const items = cart.items.map((item: CartItemWithVariant) => ({
             id: item.id,
             variantId: item.variantId,
             quantity: item.quantity,
@@ -275,26 +374,27 @@ export class CartService {
                 id: item.variant.id,
                 title: item.variant.title,
                 sku: item.variant.sku,
-                price: parseFloat(item.variant.price),
-                compareAtPrice: item.variant.compareAtPrice ? parseFloat(item.variant.compareAtPrice) : null,
+                price: parseFloat(item.variant.price.toString()),
+                compareAtPrice: item.variant.compareAtPrice ? parseFloat(item.variant.compareAtPrice.toString()) : null,
                 inventoryQty: item.variant.inventoryQty,
-                options: item.variant.optionValues.map((ov: any) => ({
+                options: item.variant.optionValues.map((ov) => ({
                     name: ov.optionValue.option.name,
                     value: ov.optionValue.value,
                 })),
             },
-            lineTotal: parseFloat(item.variant.price) * item.quantity,
+            lineTotal: parseFloat(item.variant.price.toString()) * item.quantity,
         }));
 
-        const subtotal = items.reduce((sum: number, item: any) => sum + item.lineTotal, 0);
+        const subtotal = items.reduce((sum: number, item) => sum + item.lineTotal, 0);
 
         return {
             id: cart.id,
             items,
-            itemCount: items.reduce((sum: number, item: any) => sum + item.quantity, 0),
+            itemCount: items.reduce((sum: number, item) => sum + item.quantity, 0),
             subtotal,
         };
     }
 }
 
 export const cartService = new CartService();
+

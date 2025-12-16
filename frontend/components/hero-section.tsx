@@ -58,7 +58,7 @@ export function HeroSection() {
                 height={600}
                 className="w-full h-auto border-4 border-black rounded-lg"
               />
-              <div className="absolute -bottom-4 -left-4 bg-primary text-white font-mono font-bold px-4 py-2 border-4 border-black shadow-xs -rotate-6 rounded-lg">
+              <div className="absolute -bottom-4 -left-4 bg-primary text-white font-mono font-bold px-4 py-2 border-4 border-black shadow-sm -rotate-6 rounded-lg">
                 FROM $89
               </div>
             </div>

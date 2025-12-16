@@ -78,7 +78,7 @@ router.get(
 
 // ==================== ADMIN ROUTES ====================
 
-// Create category
+// Create category (handles race condition with optimistic concurrency)
 router.post(
     '/',
     authenticate,
@@ -86,19 +86,28 @@ router.post(
     validateBody(createCategorySchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const slug = req.body.slug || generateSlug(req.body.name);
-            const existing = await prisma.category.findUnique({ where: { slug } });
-            const finalSlug = existing ? generateUniqueSlug(req.body.name) : slug;
+            const slug = (req.body.slug || generateSlug(req.body.name)).trim().toLowerCase();
 
-            const category = await prisma.category.create({
-                data: {
-                    name: req.body.name,
-                    slug: finalSlug,
-                    description: req.body.description,
-                    image: req.body.image,
-                    parentId: req.body.parentId,
-                },
-            });
+            const categoryData = {
+                name: req.body.name,
+                slug,
+                description: req.body.description,
+                image: req.body.image,
+                parentId: req.body.parentId,
+            };
+
+            let category;
+            try {
+                category = await prisma.category.create({ data: categoryData });
+            } catch (err: any) {
+                // Handle unique constraint violation (race condition)
+                if (err.code === 'P2002') {
+                    categoryData.slug = generateUniqueSlug(req.body.name);
+                    category = await prisma.category.create({ data: categoryData });
+                } else {
+                    throw err;
+                }
+            }
 
             res.status(201).json(category);
         } catch (error) {
@@ -107,7 +116,7 @@ router.post(
     }
 );
 
-// Update category
+// Update category (with slug collision check)
 router.patch(
     '/:id',
     authenticate,
@@ -116,9 +125,32 @@ router.patch(
     validateBody(updateCategorySchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const updateData = { ...req.body };
+
+            // Check for slug collision if slug is being updated
+            if (updateData.slug) {
+                const normalizedSlug = updateData.slug.trim().toLowerCase();
+                updateData.slug = normalizedSlug;
+
+                const existingCategory = await prisma.category.findFirst({
+                    where: {
+                        slug: normalizedSlug,
+                        NOT: { id: req.params.id },
+                    },
+                });
+
+                if (existingCategory) {
+                    res.status(409).json({
+                        error: 'Slug already in use',
+                        message: `The slug "${normalizedSlug}" is already used by another category.`
+                    });
+                    return;
+                }
+            }
+
             const category = await prisma.category.update({
                 where: { id: req.params.id },
-                data: req.body,
+                data: updateData,
             });
 
             res.json(category);

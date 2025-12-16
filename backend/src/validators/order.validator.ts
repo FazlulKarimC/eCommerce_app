@@ -13,18 +13,24 @@ const shippingAddressSchema = z.object({
     phone: z.string().optional(),
 });
 
+/**
+ * Payment info schema - MOCK IMPLEMENTATION FOR DEVELOPMENT ONLY.
+ * 
+ * ⚠️ PRODUCTION WARNING: Before going live, replace this with tokenized payments!
+ * Raw card data (cardNumber, CVV, expiry) must NEVER be collected in production.
+ * Use Stripe Elements, PayPal SDK, or similar PCI-compliant solutions.
+ */
 const paymentInfoSchema = z.object({
-    cardNumber: z.string()
-        .min(13, 'Invalid card number')
-        .max(19, 'Invalid card number')
-        .regex(/^[0-9\s-]+$/, 'Invalid card number format'),
-    expiryMonth: z.string().regex(/^(0[1-9]|1[0-2])$/, 'Invalid expiry month'),
-    expiryYear: z.string().regex(/^[0-9]{2,4}$/, 'Invalid expiry year'),
-    cvv: z.string().regex(/^[0-9]{3,4}$/, 'Invalid CVV'),
+    // For mock payments - accepts any card-like format for testing
+    cardNumber: z.string().min(1, 'Card number is required'),
+    expiryMonth: z.string().min(1, 'Expiry month is required'),
+    expiryYear: z.string().min(1, 'Expiry year is required'),
+    cvv: z.string().min(1, 'CVV is required'),
     cardholderName: z.string().min(1, 'Cardholder name is required'),
 });
 
-export const checkoutSchema = z.object({
+// Base checkout schema
+const checkoutBaseSchema = z.object({
     email: z.string().email('Invalid email'),
     phone: z.string().optional(),
     shippingAddress: shippingAddressSchema,
@@ -35,7 +41,28 @@ export const checkoutSchema = z.object({
     customerNotes: z.string().optional(),
     saveAddress: z.boolean().default(false),
     createAccount: z.boolean().default(false),
-    password: z.string().min(8).optional(),
+    password: z.string().min(8, 'Password must be at least 8 characters').optional(),
+});
+
+// Add conditional validation for createAccount + password
+export const checkoutSchema = checkoutBaseSchema.superRefine((data, ctx) => {
+    // When createAccount is true, password is required
+    if (data.createAccount && !data.password) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Password is required when creating an account',
+            path: ['password'],
+        });
+    }
+
+    // Also validate password length when createAccount is true (belt and suspenders)
+    if (data.createAccount && data.password && data.password.length < 8) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Password must be at least 8 characters',
+            path: ['password'],
+        });
+    }
 });
 
 export const updateOrderStatusSchema = z.object({
@@ -57,3 +84,4 @@ export const cancelOrderSchema = z.object({
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 export type AddFulfillmentInput = z.infer<typeof addFulfillmentSchema>;
+

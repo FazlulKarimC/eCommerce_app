@@ -73,7 +73,7 @@ export default function TrackOrderPage() {
         setOrder(null);
 
         try {
-            const response = await api.get(`/orders/track?orderNumber=${orderNumber}&email=${email}`);
+            const response = await api.get(`/orders/track?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
             setOrder(response.data);
         } catch (err: any) {
             if (err.response?.status === 404) {

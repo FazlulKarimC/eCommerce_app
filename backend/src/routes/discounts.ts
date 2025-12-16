@@ -106,7 +106,7 @@ router.post(
     }
 );
 
-// Update discount
+// Update discount (with proper 404 handling)
 router.patch(
     '/:id',
     authenticate,
@@ -125,13 +125,18 @@ router.patch(
             });
 
             res.json(discount);
-        } catch (error) {
+        } catch (error: any) {
+            // Handle "Record not found" error with proper 404
+            if (error.code === 'P2025') {
+                res.status(404).json({ error: 'Discount not found' });
+                return;
+            }
             next(error);
         }
     }
 );
 
-// Delete discount
+// Delete discount (with proper 404 handling)
 router.delete(
     '/:id',
     authenticate,
@@ -139,14 +144,20 @@ router.delete(
     validateParams(idParamSchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // Check if discount has been used
+            // Check if discount exists and has been used
             const discount = await prisma.discountCode.findUnique({
                 where: { id: req.params.id },
                 include: { _count: { select: { orders: true } } },
             });
 
-            if (discount && discount._count.orders > 0) {
-                // Soft delete by deactivating
+            // Return 404 if discount not found
+            if (!discount) {
+                res.status(404).json({ error: 'Discount not found' });
+                return;
+            }
+
+            // Soft delete if discount has been used in orders
+            if (discount._count.orders > 0) {
                 await prisma.discountCode.update({
                     where: { id: req.params.id },
                     data: { active: false },
@@ -155,6 +166,7 @@ router.delete(
                 return;
             }
 
+            // Hard delete if never used
             await prisma.discountCode.delete({ where: { id: req.params.id } });
             res.json({ message: 'Discount deleted' });
         } catch (error) {

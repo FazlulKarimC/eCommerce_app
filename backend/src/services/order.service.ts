@@ -47,11 +47,13 @@ export class OrderService {
         // Apply discount if provided
         let discount = 0;
         let discountCodeId: string | null = null;
+        let discountType: string | null = null;
 
         if (input.discountCode) {
             const discountResult = await this.applyDiscount(input.discountCode, subtotal);
             discount = discountResult.discount;
             discountCodeId = discountResult.discountCodeId;
+            discountType = discountResult.type;
         }
 
         // Get store settings for shipping and tax
@@ -64,7 +66,10 @@ export class OrderService {
             ? parseFloat(settings.freeShippingThreshold.toString())
             : null;
 
-        const finalShipping = (freeShippingThreshold && subtotal >= freeShippingThreshold) ? 0 : shippingCost;
+        // Check if free shipping via discount code OR threshold
+        const hasFreeShippingDiscount = discountType === 'FREE_SHIPPING';
+        const meetsFreeShippingThreshold = freeShippingThreshold !== null && subtotal >= freeShippingThreshold;
+        const finalShipping = (hasFreeShippingDiscount || meetsFreeShippingThreshold) ? 0 : shippingCost;
 
         const taxRate = settings?.defaultTaxRate ? parseFloat(settings.defaultTaxRate.toString()) : 0;
         const tax = (subtotal - discount) * (taxRate / 100);
@@ -294,9 +299,25 @@ export class OrderService {
         const where: any = {
             ...(status && { status }),
             ...(customerId && { customerId }),
-            ...(startDate && { createdAt: { gte: new Date(startDate) } }),
-            ...(endDate && { createdAt: { lte: new Date(endDate) } }),
         };
+
+        // Build createdAt filter properly to handle both startDate and endDate
+        const createdAtFilter: { gte?: Date; lte?: Date } = {};
+        if (startDate) {
+            const parsedStart = new Date(startDate);
+            if (!isNaN(parsedStart.getTime())) {
+                createdAtFilter.gte = parsedStart;
+            }
+        }
+        if (endDate) {
+            const parsedEnd = new Date(endDate);
+            if (!isNaN(parsedEnd.getTime())) {
+                createdAtFilter.lte = parsedEnd;
+            }
+        }
+        if (Object.keys(createdAtFilter).length > 0) {
+            where.createdAt = createdAtFilter;
+        }
 
         const [orders, total] = await Promise.all([
             prisma.order.findMany({
@@ -397,7 +418,7 @@ export class OrderService {
 
         return {
             success: true,
-            transactionId: `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            transactionId: `mock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         };
     }
 

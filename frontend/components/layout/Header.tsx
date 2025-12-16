@@ -86,10 +86,13 @@ export function Header() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                        {/* Search */}
+                        {/* Search - TODO: Implement search functionality */}
                         <button
-                            className="p-2 hover:bg-yellow-400 transition-colors rounded-lg"
-                            aria-label="Search"
+                            className="p-2 hover:bg-yellow-400 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Search (coming soon)"
+                            title="Search feature coming soon"
+                            disabled
+                            aria-disabled="true"
                         >
                             <Search className="w-5 h-5" />
                         </button>

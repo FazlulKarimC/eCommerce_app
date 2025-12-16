@@ -1,10 +1,50 @@
 "use client"
 
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Loader2 } from "lucide-react"
 
 export function NewsletterCTA() {
+  const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const trimmedEmail = email.trim()
+
+    // Email validation
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setStatus({ type: 'error', message: 'Please enter a valid email address' })
+      return
+    }
+
+    setIsLoading(true)
+    setStatus(null)
+
+    try {
+      // TODO: Implement newsletter API call
+      // const response = await fetch('/api/newsletter', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email: trimmedEmail }),
+      // })
+      // if (!response.ok) throw new Error('Subscription failed')
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      setStatus({ type: 'success', message: 'Thank you for subscribing!' })
+      setEmail("")
+    } catch {
+      setStatus({ type: 'error', message: 'Something went wrong. Please try again.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [email])
+
   return (
     <section className="relative bg-primary py-16 overflow-hidden">
       {/* Zigzag Top Border */}
@@ -31,25 +71,47 @@ export function NewsletterCTA() {
           </p>
 
           {/* Form */}
-          <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
             <div className="flex-1 relative">
               <Input
                 type="email"
                 placeholder="YOUR EMAIL"
-                className="w-full h-14 px-4 font-bold text-base border-4 border-black bg-white placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 rounded-lg"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                className="w-full h-14 px-4 font-bold text-base border-4 border-black bg-white placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 rounded-lg disabled:opacity-50"
               />
             </div>
             <Button
               type="submit"
               size="lg"
-              className="h-14 px-8 font-bold text-base bg-black text-secondary border-4 border-black shadow-[4px_4px_0_0_var(--color-secondary)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-lg"
+              disabled={isLoading}
+              className="h-14 px-8 font-bold text-base bg-black text-secondary border-4 border-black shadow-[4px_4px_0_0_var(--color-secondary)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-lg disabled:opacity-50"
             >
-              SUBSCRIBE
-              <ArrowRight className="ml-2 h-5 w-5" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  SUBSCRIBING...
+                </>
+              ) : (
+                <>
+                  SUBSCRIBE
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
             </Button>
           </form>
 
-          <p className="text-white/60 text-sm mt-4 font-medium">No spam. Unsubscribe anytime. We respect your inbox.</p>
+          {/* Status feedback with aria-live for accessibility */}
+          <div aria-live="polite" className="mt-4 min-h-[24px]">
+            {status && (
+              <p className={`text-sm font-medium ${status.type === 'success' ? 'text-white' : 'text-red-200'}`}>
+                {status.message}
+              </p>
+            )}
+          </div>
+
+          <p className="text-white/60 text-sm mt-2 font-medium">No spam. Unsubscribe anytime. We respect your inbox.</p>
         </div>
       </div>
 

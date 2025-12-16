@@ -42,6 +42,12 @@ export const addressSchema = z.object({
     isDefault: z.boolean().default(false),
 });
 
+// Customer update schema (admin use)
+export const updateCustomerSchema = z.object({
+    notes: z.string().optional(),
+    phone: z.string().regex(/^\+?[0-9\s\-()]+$/, 'Invalid phone number format').optional(),
+});
+
 // Collection schemas
 export const createCollectionSchema = z.object({
     title: z.string().min(1, 'Title is required').max(255),
@@ -57,6 +63,11 @@ export const createCollectionSchema = z.object({
 
 export const updateCollectionSchema = createCollectionSchema.partial();
 
+export const addProductToCollectionSchema = z.object({
+    productId: z.string().min(1, 'Product ID is required'),
+    position: z.number().int().min(0, 'Position must be a non-negative integer').optional(),
+});
+
 // Category schemas
 export const createCategorySchema = z.object({
     name: z.string().min(1, 'Name is required').max(255),
@@ -68,8 +79,8 @@ export const createCategorySchema = z.object({
 
 export const updateCategorySchema = createCategorySchema.partial();
 
-// Discount schemas
-export const createDiscountSchema = z.object({
+// Discount schemas - base schema without refinements
+const discountBaseSchema = z.object({
     code: z.string().min(1, 'Code is required').max(50).transform((val) => val.toUpperCase()),
     title: z.string().optional(),
     type: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING']),
@@ -82,7 +93,40 @@ export const createDiscountSchema = z.object({
     active: z.boolean().default(true),
 });
 
-export const updateDiscountSchema = createDiscountSchema.partial().omit({ code: true });
+// Refinement function for discount validation
+const discountRefinement = (data: { type?: string; value?: number; startsAt?: string; endsAt?: string }, ctx: z.RefinementCtx) => {
+    // Validate percentage value is between 0-100
+    if (data.type === 'PERCENTAGE' && data.value !== undefined && data.value > 100) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Percentage discount value cannot exceed 100',
+            path: ['value'],
+        });
+    }
+
+    // Validate endsAt is after startsAt when both are provided
+    if (data.startsAt && data.endsAt) {
+        const startDate = new Date(data.startsAt);
+        const endDate = new Date(data.endsAt);
+
+        if (isFinite(startDate.getTime()) && isFinite(endDate.getTime())) {
+            if (endDate <= startDate) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'endsAt must be after startsAt',
+                    path: ['endsAt'],
+                });
+            }
+        }
+    }
+};
+
+export const createDiscountSchema = discountBaseSchema.superRefine(discountRefinement);
+
+export const updateDiscountSchema = discountBaseSchema
+    .partial()
+    .omit({ code: true })
+    .superRefine(discountRefinement);
 
 export const applyDiscountSchema = z.object({
     code: z.string().min(1, 'Discount code is required'),

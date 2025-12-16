@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { authenticate } from '../middleware/auth';
 import { requireStaff } from '../middleware/requireRole';
 import { validateParams, validateBody } from '../middleware/validate';
-import { idParamSchema, addressSchema, paginationSchema } from '../validators/common.validator';
+import { idParamSchema, addressSchema, paginationSchema, updateCustomerSchema } from '../validators/common.validator';
 
 const router = Router();
 
@@ -55,75 +55,9 @@ router.get(
   }
 );
 
-// Get customer details
-router.get(
-  '/:id',
-  authenticate,
-  requireStaff,
-  validateParams(idParamSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const customer = await prisma.customer.findUnique({
-        where: { id: req.params.id },
-        include: {
-          user: { select: { id: true, name: true, email: true, createdAt: true } },
-          addresses: true,
-          orders: {
-            take: 10,
-            orderBy: { createdAt: 'desc' },
-            include: {
-              items: true,
-            },
-          },
-          _count: { select: { orders: true, reviews: true } },
-        },
-      });
-
-      if (!customer) {
-        res.status(404).json({ error: 'Customer not found' });
-        return;
-      }
-
-      // Calculate total spent
-      const totalSpent = await prisma.order.aggregate({
-        where: { customerId: customer.id, status: { in: ['PAID', 'SHIPPED', 'DELIVERED'] } },
-        _sum: { total: true },
-      });
-
-      res.json({
-        ...customer,
-        totalSpent: totalSpent._sum.total || 0,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-// Update customer notes
-router.patch(
-  '/:id',
-  authenticate,
-  requireStaff,
-  validateParams(idParamSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const customer = await prisma.customer.update({
-        where: { id: req.params.id },
-        data: {
-          notes: req.body.notes,
-          phone: req.body.phone,
-        },
-      });
-
-      res.json(customer);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
 // ==================== CUSTOMER SELF-SERVICE ROUTES ====================
+// NOTE: These /me/* routes MUST be defined BEFORE /:id routes to prevent
+// Express from matching 'me' as a dynamic :id parameter
 
 // Get my addresses
 router.get(
@@ -250,6 +184,77 @@ router.delete(
       });
 
       res.json({ message: 'Address deleted' });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ==================== ADMIN ROUTES WITH DYNAMIC :id ====================
+
+// Get customer details
+router.get(
+  '/:id',
+  authenticate,
+  requireStaff,
+  validateParams(idParamSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const customer = await prisma.customer.findUnique({
+        where: { id: req.params.id },
+        include: {
+          user: { select: { id: true, name: true, email: true, createdAt: true } },
+          addresses: true,
+          orders: {
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+            include: {
+              items: true,
+            },
+          },
+          _count: { select: { orders: true, reviews: true } },
+        },
+      });
+
+      if (!customer) {
+        res.status(404).json({ error: 'Customer not found' });
+        return;
+      }
+
+      // Calculate total spent
+      const totalSpent = await prisma.order.aggregate({
+        where: { customerId: customer.id, status: { in: ['PAID', 'SHIPPED', 'DELIVERED'] } },
+        _sum: { total: true },
+      });
+
+      res.json({
+        ...customer,
+        totalSpent: totalSpent._sum.total || 0,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Update customer notes
+router.patch(
+  '/:id',
+  authenticate,
+  requireStaff,
+  validateParams(idParamSchema),
+  validateBody(updateCustomerSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const customer = await prisma.customer.update({
+        where: { id: req.params.id },
+        data: {
+          notes: req.body.notes,
+          phone: req.body.phone,
+        },
+      });
+
+      res.json(customer);
     } catch (error) {
       next(error);
     }

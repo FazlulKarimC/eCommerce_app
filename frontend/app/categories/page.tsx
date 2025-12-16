@@ -9,20 +9,6 @@ import { cn } from '@/lib/utils';
 export default function CategoriesPage() {
     const { data: categories, isLoading } = useCategories();
 
-    // Flatten categories for display (including nested children)
-    const flattenCategories = (cats: any[], parentName?: string): any[] => {
-        if (!cats) return [];
-        return cats.flatMap((cat) => {
-            const result = [{ ...cat, parentName }];
-            if (cat.children && cat.children.length > 0) {
-                result.push(...flattenCategories(cat.children, cat.name));
-            }
-            return result;
-        });
-    };
-
-    const allCategories = flattenCategories(categories || []);
-
     return (
         <div className="min-h-screen bg-[#FAFAFA]">
             <main className="py-12 md:py-16">

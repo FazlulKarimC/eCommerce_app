@@ -2,11 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError, ZodSchema } from 'zod';
 
 // Extend Express Request to include validated data
+// Using unknown instead of any for better type safety
+// Callers can cast to the expected Zod-inferred type
 declare global {
     namespace Express {
         interface Request {
-            validatedQuery?: any;
-            validatedParams?: any;
+            validatedQuery?: unknown;
+            validatedParams?: unknown;
         }
     }
 }

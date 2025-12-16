@@ -82,8 +82,8 @@
   --shadow-y: 4px;
   --shadow-blur: 0px;
   --shadow-spread: 0px;
-  --shadow-opacity: 1;
-  --shadow-color: #000000;
+  --shadow-opacity: 0.3;
+  --shadow-color: rgba(255, 255, 255, 0.5);
 }
 
 @theme inline {
@@ -136,11 +136,6 @@
   --shadow-2xl: calc(var(--shadow-x) * 8) calc(var(--shadow-y) * 8) calc(max(0px, var(--shadow-blur) * 9 - 8px)) calc(var(--shadow-spread) - 12px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 250%), transparent);
   --shadow: var(--shadow-md);
   --color-shadow-color: var(--shadow-color);
-  --shadow-opacity: var(--shadow-opacity);
-  --shadow-spread: var(--shadow-spread);
-  --shadow-blur: var(--shadow-blur);
-  --shadow-y: var(--shadow-y);
-  --shadow-x: var(--shadow-x);
 }
 
 @layer base {

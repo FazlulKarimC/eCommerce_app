@@ -68,7 +68,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             isAuthenticated: false,
             isLoading: false,
         });
-        localStorage.removeItem('sessionId'); // cleanup guest session logic if any
+        // Guard localStorage access for SSR safety
+        if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
+            try {
+                localStorage.removeItem('sessionId');
+            } catch {
+                // Ignore localStorage errors (e.g., private browsing mode)
+            }
+        }
     },
 
     setUser: (user) => set({ user, isAuthenticated: !!user }),

@@ -22,6 +22,7 @@ enum UserRole {
 enum OrderStatus {
   PENDING
   PROCESSING
+  CONFIRMED
   PAID
   SHIPPED
   DELIVERED

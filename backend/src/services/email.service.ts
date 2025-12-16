@@ -8,64 +8,92 @@ const STORE_NAME = process.env.STORE_NAME || 'Our Store';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@resend.dev'; // Use resend.dev for testing
 
 interface OrderEmailData {
-    orderNumber: string;
-    email: string;
-    customerName: string;
-    items: Array<{
-        productTitle: string;
-        variantTitle?: string | null;
-        quantity: number;
-        price: number;
-    }>;
-    subtotal: number;
-    discount: number;
-    shippingCost: number;
-    tax: number;
-    total: number;
-    shippingAddress?: {
-        firstName: string;
-        lastName: string;
-        line1: string;
-        city: string;
-        state: string;
-        postalCode: string;
-        country: string;
-    } | null;
+  orderNumber: string;
+  email: string;
+  customerName: string;
+  items: Array<{
+    productTitle: string;
+    variantTitle?: string | null;
+    quantity: number;
+    price: number;
+  }>;
+  subtotal: number;
+  discount: number;
+  shippingCost: number;
+  tax: number;
+  total: number;
+  shippingAddress?: {
+    firstName: string;
+    lastName: string;
+    line1: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  } | null;
 }
 
 interface ShippingEmailData {
-    orderNumber: string;
-    email: string;
-    customerName: string;
-    carrier?: string | null;
-    trackingNumber?: string | null;
-    trackingUrl?: string | null;
-    estimatedDelivery?: string | null;
+  orderNumber: string;
+  email: string;
+  customerName: string;
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  estimatedDelivery?: string | null;
 }
 
 function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-    }).format(amount);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+/**
+ * Escape HTML entities to prevent XSS attacks
+ * Handles null/undefined by returning empty string
+ */
+function escapeHtml(text: string | null | undefined): string {
+  if (text == null) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Safely format a date string, returning null if invalid
+ */
+function formatDateSafe(dateString: string | null | undefined): string | null {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  if (!isFinite(date.getTime())) return null;
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
 
 /**
  * Send order confirmation email
  */
 export async function sendOrderConfirmation(data: OrderEmailData): Promise<boolean> {
-    if (!resend) {
-        console.log('[EMAIL] Resend not configured - skipping order confirmation email');
-        console.log('[EMAIL] Would send to:', data.email);
-        return false;
-    }
+  if (!resend) {
+    console.log('[EMAIL] Resend not configured - skipping order confirmation email');
+    console.log('[EMAIL] Would send to:', data.email);
+    return false;
+  }
 
-    const itemsHtml = data.items
-        .map(
-            (item) => `
+  const itemsHtml = data.items
+    .map(
+      (item) => `
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #e5e5e5;">
-          ${item.productTitle}${item.variantTitle ? ` - ${item.variantTitle}` : ''}
+          ${escapeHtml(item.productTitle)}${item.variantTitle ? ` - ${escapeHtml(item.variantTitle)}` : ''}
         </td>
         <td style="padding: 12px; border-bottom: 1px solid #e5e5e5; text-align: center;">
           ${item.quantity}
@@ -75,11 +103,11 @@ export async function sendOrderConfirmation(data: OrderEmailData): Promise<boole
         </td>
       </tr>
     `
-        )
-        .join('');
+    )
+    .join('');
 
-    const addressHtml = data.shippingAddress
-        ? `
+  const addressHtml = data.shippingAddress
+    ? `
     <div style="margin-top: 24px; padding: 16px; background: #f5f5f5; border-radius: 8px;">
       <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: #666;">
         Shipping Address
@@ -92,9 +120,9 @@ export async function sendOrderConfirmation(data: OrderEmailData): Promise<boole
       </p>
     </div>
   `
-        : '';
+    : '';
 
-    const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -187,39 +215,39 @@ export async function sendOrderConfirmation(data: OrderEmailData): Promise<boole
     </html>
   `;
 
-    try {
-        const { error } = await resend.emails.send({
-            from: FROM_EMAIL,
-            to: data.email,
-            subject: `Order Confirmed - #${data.orderNumber}`,
-            html,
-        });
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: data.email,
+      subject: `Order Confirmed - #${data.orderNumber}`,
+      html,
+    });
 
-        if (error) {
-            console.error('[EMAIL] Failed to send order confirmation:', error);
-            return false;
-        }
-
-        console.log('[EMAIL] Order confirmation sent to:', data.email);
-        return true;
-    } catch (error) {
-        console.error('[EMAIL] Error sending order confirmation:', error);
-        return false;
+    if (error) {
+      console.error('[EMAIL] Failed to send order confirmation:', error);
+      return false;
     }
+
+    console.log('[EMAIL] Order confirmation sent to:', data.email);
+    return true;
+  } catch (error) {
+    console.error('[EMAIL] Error sending order confirmation:', error);
+    return false;
+  }
 }
 
 /**
  * Send shipping notification email
  */
 export async function sendShippingNotification(data: ShippingEmailData): Promise<boolean> {
-    if (!resend) {
-        console.log('[EMAIL] Resend not configured - skipping shipping notification email');
-        console.log('[EMAIL] Would send to:', data.email);
-        return false;
-    }
+  if (!resend) {
+    console.log('[EMAIL] Resend not configured - skipping shipping notification email');
+    console.log('[EMAIL] Would send to:', data.email);
+    return false;
+  }
 
-    const trackingHtml = data.trackingNumber
-        ? `
+  const trackingHtml = data.trackingNumber
+    ? `
     <div style="background: #FFEB3B; padding: 20px; border: 2px solid #000; border-radius: 8px; margin: 24px 0;">
       <h3 style="margin: 0 0 12px 0; font-weight: bold;">Tracking Information</h3>
       ${data.carrier ? `<p style="margin: 0 0 8px 0;"><strong>Carrier:</strong> ${data.carrier}</p>` : ''}
@@ -231,22 +259,18 @@ export async function sendShippingNotification(data: ShippingEmailData): Promise
       ` : ''}
     </div>
   `
-        : '';
+    : '';
 
-    const estimatedDeliveryHtml = data.estimatedDelivery
-        ? `
+  const formattedDeliveryDate = formatDateSafe(data.estimatedDelivery);
+  const estimatedDeliveryHtml = formattedDeliveryDate
+    ? `
     <p style="margin: 16px 0; padding: 16px; background: #f5f5f5; border-radius: 8px;">
-      <strong>Estimated Delivery:</strong> ${new Date(data.estimatedDelivery).toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        })}
+      <strong>Estimated Delivery:</strong> ${formattedDeliveryDate}
     </p>
   `
-        : '';
+    : '';
 
-    const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -296,28 +320,28 @@ export async function sendShippingNotification(data: ShippingEmailData): Promise
     </html>
   `;
 
-    try {
-        const { error } = await resend.emails.send({
-            from: FROM_EMAIL,
-            to: data.email,
-            subject: `Your Order Has Shipped - #${data.orderNumber}`,
-            html,
-        });
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: data.email,
+      subject: `Your Order Has Shipped - #${data.orderNumber}`,
+      html,
+    });
 
-        if (error) {
-            console.error('[EMAIL] Failed to send shipping notification:', error);
-            return false;
-        }
-
-        console.log('[EMAIL] Shipping notification sent to:', data.email);
-        return true;
-    } catch (error) {
-        console.error('[EMAIL] Error sending shipping notification:', error);
-        return false;
+    if (error) {
+      console.error('[EMAIL] Failed to send shipping notification:', error);
+      return false;
     }
+
+    console.log('[EMAIL] Shipping notification sent to:', data.email);
+    return true;
+  } catch (error) {
+    console.error('[EMAIL] Error sending shipping notification:', error);
+    return false;
+  }
 }
 
 export const emailService = {
-    sendOrderConfirmation,
-    sendShippingNotification,
+  sendOrderConfirmation,
+  sendShippingNotification,
 };

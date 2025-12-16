@@ -6,6 +6,7 @@ import { requireStaff } from '../middleware/requireRole';
 import {
     createCollectionSchema,
     updateCollectionSchema,
+    addProductToCollectionSchema,
     slugParamSchema,
     idParamSchema,
     paginationSchema,
@@ -54,7 +55,7 @@ router.get(
     validateParams(slugParamSchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const collection = await prisma.collection.findUnique({
+            const collection = await prisma.collection.findFirst({
                 where: { slug: req.params.slug, publishedAt: { not: null } },
                 include: {
                     products: {
@@ -138,35 +139,56 @@ router.post(
     validateBody(createCollectionSchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const slug = req.body.slug || generateSlug(req.body.title);
-            const existing = await prisma.collection.findUnique({ where: { slug } });
-            const finalSlug = existing ? generateUniqueSlug(req.body.title) : slug;
+            let finalSlug = req.body.slug || generateSlug(req.body.title);
+            let collection;
 
-            const collection = await prisma.collection.create({
-                data: {
-                    title: req.body.title,
-                    slug: finalSlug,
-                    description: req.body.description,
-                    image: req.body.image,
-                    featured: req.body.featured,
-                    sortOrder: req.body.sortOrder,
-                    seoTitle: req.body.seoTitle,
-                    seoDescription: req.body.seoDescription,
-                    publishedAt: new Date(),
-                },
-            });
-
-            // Add products if provided
-            if (req.body.productIds && req.body.productIds.length > 0) {
-                for (let i = 0; i < req.body.productIds.length; i++) {
-                    await prisma.collectionProduct.create({
+            try {
+                // Optimistic creation - let DB enforce uniqueness
+                collection = await prisma.collection.create({
+                    data: {
+                        title: req.body.title,
+                        slug: finalSlug,
+                        description: req.body.description,
+                        image: req.body.image,
+                        featured: req.body.featured,
+                        sortOrder: req.body.sortOrder,
+                        seoTitle: req.body.seoTitle,
+                        seoDescription: req.body.seoDescription,
+                        publishedAt: new Date(),
+                    },
+                });
+            } catch (error: any) {
+                // Handle unique constraint violation (P2002)
+                if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+                    finalSlug = generateUniqueSlug(req.body.title);
+                    collection = await prisma.collection.create({
                         data: {
-                            collectionId: collection.id,
-                            productId: req.body.productIds[i],
-                            position: i,
+                            title: req.body.title,
+                            slug: finalSlug,
+                            description: req.body.description,
+                            image: req.body.image,
+                            featured: req.body.featured,
+                            sortOrder: req.body.sortOrder,
+                            seoTitle: req.body.seoTitle,
+                            seoDescription: req.body.seoDescription,
+                            publishedAt: new Date(),
                         },
                     });
+                } else {
+                    throw error;
                 }
+            }
+
+            // Add products if provided - batch insert instead of N+1
+            if (req.body.productIds && req.body.productIds.length > 0) {
+                await prisma.collectionProduct.createMany({
+                    data: req.body.productIds.map((productId: string, index: number) => ({
+                        collectionId: collection.id,
+                        productId,
+                        position: index,
+                    })),
+                    skipDuplicates: true,
+                });
             }
 
             res.status(201).json(collection);
@@ -227,6 +249,7 @@ router.post(
     authenticate,
     requireStaff,
     validateParams(idParamSchema),
+    validateBody(addProductToCollectionSchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { productId, position } = req.body;

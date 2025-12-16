@@ -122,7 +122,15 @@ export class ProductService {
                 }
             }
 
-            return this.findById(product.id);
+            // Return the full product using the transaction client (not global prisma)
+            // to maintain transaction isolation
+            const fullProduct = await tx.product.findUnique({
+                where: { id: product.id, deletedAt: null },
+                include: this.getFullInclude(),
+            });
+
+            if (!fullProduct) throw new Error('Product not found after creation');
+            return fullProduct;
         });
     }
 
@@ -266,18 +274,31 @@ export class ProductService {
         }
 
         if (isPriceSort) {
-            // For price sorting, we need to fetch all matching products and sort in memory
+            // For price sorting, we need to fetch matching products and sort in memory
             // This is less efficient but gives correct results for relation-based sorting
-            const allProducts = await prisma.product.findMany({
-                where,
-                include: {
-                    variants: { orderBy: { position: 'asc' }, take: 1 },
-                    images: { orderBy: { position: 'asc' }, take: 1 },
-                    collections: { include: { collection: true } },
-                    categories: { include: { category: true } },
-                    _count: { select: { reviews: true } },
-                },
-            });
+            // 
+            // IMPORTANT: To prevent memory issues, we apply a hard cap.
+            // Long-term fix: Add a denormalized minVariantPrice field on Product table
+            // and update it via triggers/hooks when variants change.
+            const MAX_PRICE_SORT_PRODUCTS = 1000;
+
+            const [allProducts, totalCount] = await Promise.all([
+                prisma.product.findMany({
+                    where,
+                    include: {
+                        variants: { orderBy: { position: 'asc' }, take: 1 },
+                        images: { orderBy: { position: 'asc' }, take: 1 },
+                        collections: { include: { collection: true } },
+                        categories: { include: { category: true } },
+                        _count: { select: { reviews: true } },
+                    },
+                    take: MAX_PRICE_SORT_PRODUCTS, // Hard cap to prevent OOM
+                }),
+                prisma.product.count({ where }),
+            ]);
+
+            // Warn if results may be incomplete due to cap
+            const cappedResults = totalCount > MAX_PRICE_SORT_PRODUCTS;
 
             // Sort by first variant price
             const sortedProducts = allProducts.sort((a, b) => {
@@ -288,15 +309,20 @@ export class ProductService {
 
             // Apply pagination
             const paginatedProducts = sortedProducts.slice((page - 1) * limit, page * limit);
+            const effectiveTotal = cappedResults ? MAX_PRICE_SORT_PRODUCTS : allProducts.length;
 
             return {
                 products: paginatedProducts,
                 pagination: {
                     page,
                     limit,
-                    total: allProducts.length,
-                    totalPages: Math.ceil(allProducts.length / limit),
+                    total: effectiveTotal,
+                    totalPages: Math.ceil(effectiveTotal / limit),
                 },
+                // Flag to indicate results may be incomplete when sorting by price
+                ...(cappedResults && {
+                    warning: `Price sorting is limited to ${MAX_PRICE_SORT_PRODUCTS} products for performance. Some results may not be shown.`,
+                }),
             };
         }
 

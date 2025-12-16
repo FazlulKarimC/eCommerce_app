@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { toNodeHandler } from 'better-auth/node';
 import { env } from './config/env';
+import { auth } from './config/auth';
 import routes from './routes';
 import { notFound, errorHandler } from './middleware/errorHandler';
 
@@ -38,11 +40,8 @@ if (env.isDevelopment) {
   });
 }
 
-// API Routes
-import { toNodeHandler } from "better-auth/node";
-import { auth } from "./config/auth";
-
-app.all("/api/auth/*path", toNodeHandler(auth));
+// API Routes - Express 5 requires named splat parameters for wildcards
+app.all("/api/auth/{*splat}", toNodeHandler(auth));
 
 app.use('/api', routes);
 

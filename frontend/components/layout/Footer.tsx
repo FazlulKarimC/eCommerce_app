@@ -52,13 +52,33 @@ export function Footer() {
                                 Get 10% off your first order + exclusive drops
                             </p>
                         </div>
-                        <form className="flex w-full md:w-auto gap-3">
+                        <form
+                            className="flex w-full md:w-auto gap-3"
+                            onSubmit={async (e) => {
+                                e.preventDefault();
+                                const form = e.currentTarget;
+                                const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+                                const email = emailInput?.value?.trim();
+
+                                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                    alert('Please enter a valid email address');
+                                    return;
+                                }
+
+                                // TODO: Implement newsletter API call
+                                // await api.post('/newsletter', { email });
+                                alert('Thank you for subscribing!');
+                                emailInput.value = '';
+                            }}
+                        >
                             <Input
                                 type="email"
+                                name="email"
                                 placeholder="Your email"
+                                required
                                 className="bg-white text-black w-full md:w-80"
                             />
-                            <Button variant="secondary" className="whitespace-nowrap">
+                            <Button type="submit" variant="secondary" className="whitespace-nowrap">
                                 Subscribe
                             </Button>
                         </form>

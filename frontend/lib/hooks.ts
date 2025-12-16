@@ -10,7 +10,8 @@ import type {
     Order,
     Review,
     ReviewStats,
-    Pagination
+    Pagination,
+    CheckoutFormData
 } from './types';
 
 // ========================
@@ -316,7 +317,7 @@ export function useCheckout() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: any) => {
+        mutationFn: async (data: CheckoutFormData) => {
             const response = await api.post('/checkout', data);
             return response.data;
         },

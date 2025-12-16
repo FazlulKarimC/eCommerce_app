@@ -39,7 +39,11 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
 export function getExpirationDate(duration: string): Date {
     const match = duration.match(/^(\d+)([dhms])$/);
     if (!match) {
-        return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Default 7 days
+        throw new Error(
+            `Invalid JWT expiration format: "${duration}". ` +
+            `Expected format: <number><unit> where unit is 's' (seconds), 'm' (minutes), 'h' (hours), or 'd' (days). ` +
+            `Examples: "15m", "1h", "7d". Check your JWT_EXPIRES_IN environment variable.`
+        );
     }
 
     const value = parseInt(match[1], 10);

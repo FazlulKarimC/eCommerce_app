@@ -16,11 +16,22 @@ const productSchema = z.object({
     shortDescription: z.string().optional(),
     status: z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']),
     featured: z.boolean(),
-    price: z.number().min(0, 'Price must be positive'),
-    compareAtPrice: z.number().min(0).optional().nullable(),
+    price: z.number().min(0.01, 'Price must be positive'),
+    compareAtPrice: z.number().min(0).nullable(),
     sku: z.string().optional(),
     inventoryQty: z.number().int().min(0),
-});
+}).refine(
+    (data) => {
+        if (data.compareAtPrice != null) {
+            return data.compareAtPrice > data.price;
+        }
+        return true;
+    },
+    {
+        message: 'Compare at price must be greater than price',
+        path: ['compareAtPrice'],
+    }
+);
 
 type ProductFormData = z.infer<typeof productSchema>;
 
@@ -82,7 +93,7 @@ export default function NewProductPage() {
             <div className="mb-8">
                 <Link
                     href="/admin/products"
-                    className="inline-flex items-center gap-2 text-[var(--brutal-gray-600)] hover:text-[var(--brutal-black)] mb-4"
+                    className="inline-flex items-center gap-2 text-(--brutal-gray-600) hover:text-(--brutal-black) mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Products
@@ -92,14 +103,14 @@ export default function NewProductPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-[var(--brutal-red)] text-white p-4 border-2 border-[var(--brutal-black)]">
+                    <div className="bg-(--brutal-red) text-white p-4 border-2 border-(--brutal-black)">
                         {error}
                     </div>
                 )}
 
                 {/* Basic Info */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Basic Information
                     </h2>
 
@@ -111,7 +122,7 @@ export default function NewProductPage() {
                             placeholder="Product title"
                         />
                         {errors.title && (
-                            <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.title.message}</p>
+                            <p className="text-(--brutal-red) text-sm mt-1">{errors.title.message}</p>
                         )}
                     </div>
 
@@ -123,7 +134,7 @@ export default function NewProductPage() {
                             placeholder="Product description"
                         />
                         {errors.description && (
-                            <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.description.message}</p>
+                            <p className="text-(--brutal-red) text-sm mt-1">{errors.description.message}</p>
                         )}
                     </div>
 
@@ -139,7 +150,7 @@ export default function NewProductPage() {
 
                 {/* Pricing */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Pricing & Inventory
                     </h2>
 
@@ -147,21 +158,25 @@ export default function NewProductPage() {
                         <div>
                             <label className="block font-bold text-sm mb-2">Price *</label>
                             <input
-                                {...register('price', { valueAsNumber: true })}
+                                {...register('price', {
+                                    setValueAs: (v) => v === '' ? undefined : parseFloat(v),
+                                })}
                                 type="number"
                                 step="0.01"
                                 className="brutal-input"
                                 placeholder="0.00"
                             />
                             {errors.price && (
-                                <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.price.message}</p>
+                                <p className="text-(--brutal-red) text-sm mt-1">{errors.price.message}</p>
                             )}
                         </div>
 
                         <div>
                             <label className="block font-bold text-sm mb-2">Compare at Price</label>
                             <input
-                                {...register('compareAtPrice', { valueAsNumber: true })}
+                                {...register('compareAtPrice', {
+                                    setValueAs: (v) => v === '' ? undefined : parseFloat(v),
+                                })}
                                 type="number"
                                 step="0.01"
                                 className="brutal-input"
@@ -181,13 +196,15 @@ export default function NewProductPage() {
                         <div>
                             <label className="block font-bold text-sm mb-2">Inventory Quantity *</label>
                             <input
-                                {...register('inventoryQty', { valueAsNumber: true })}
+                                {...register('inventoryQty', {
+                                    setValueAs: (v) => v === '' ? undefined : parseInt(v, 10),
+                                })}
                                 type="number"
                                 className="brutal-input"
                                 placeholder="0"
                             />
                             {errors.inventoryQty && (
-                                <p className="text-[var(--brutal-red)] text-sm mt-1">{errors.inventoryQty.message}</p>
+                                <p className="text-(--brutal-red) text-sm mt-1">{errors.inventoryQty.message}</p>
                             )}
                         </div>
                     </div>
@@ -195,7 +212,7 @@ export default function NewProductPage() {
 
                 {/* Status */}
                 <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-[var(--brutal-gray-200)] pb-2 mb-4">
+                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
                         Status & Visibility
                     </h2>
 
@@ -214,7 +231,7 @@ export default function NewProductPage() {
                                 {...register('featured')}
                                 type="checkbox"
                                 id="featured"
-                                className="w-5 h-5 border-2 border-[var(--brutal-black)]"
+                                className="w-5 h-5 border-2 border-(--brutal-black)"
                             />
                             <label htmlFor="featured" className="font-bold">
                                 Featured Product

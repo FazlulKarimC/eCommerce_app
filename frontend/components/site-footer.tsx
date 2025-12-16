@@ -23,13 +23,18 @@ export function SiteFooter() {
               Bold designs for bold people. Making waves since 2020.
             </p>
             <div className="flex gap-3 mt-6">
-              {[Instagram, Twitter, Youtube].map((Icon, index) => (
+              {[
+                { id: 'instagram', Icon: Instagram, href: 'https://instagram.com' }, // TODO: Set real URL
+                { id: 'twitter', Icon: Twitter, href: 'https://twitter.com' }, // TODO: Set real URL
+                { id: 'youtube', Icon: Youtube, href: 'https://youtube.com' }, // TODO: Set real URL
+              ].map((social) => (
                 <Link
-                  key={index}
-                  href="#"
+                  key={social.id}
+                  href={social.href}
+                  aria-label={social.id}
                   className="w-10 h-10 border-2 border-white flex items-center justify-center hover:bg-secondary hover:text-black hover:border-secondary transition-colors rounded-lg"
                 >
-                  <Icon className="h-5 w-5" />
+                  <social.Icon className="h-5 w-5" />
                 </Link>
               ))}
             </div>

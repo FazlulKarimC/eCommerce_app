@@ -70,9 +70,10 @@ export default function WishlistPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {wishlist.map((item) => {
                                 const product = item.product;
-                                const price = product.price || 0;
+                                // Use product-level price with proper null guards
+                                const price = product.price ?? 0;
                                 const compareAtPrice = product.compareAtPrice;
-                                const isOnSale = compareAtPrice && compareAtPrice > price;
+                                const isOnSale = compareAtPrice != null && compareAtPrice > price;
 
                                 return (
                                     <Card key={item.id} shadow="sm" hover="liftSm" className="overflow-hidden group">

@@ -72,6 +72,8 @@ export default function ProductDetailPage() {
 
         if (matchingVariant) {
             setSelectedVariant(matchingVariant);
+            // Clamp quantity to new variant's stock to prevent exceeding available inventory
+            setQuantity(prev => Math.min(prev, matchingVariant.inventoryQty || 1));
         }
     }, [selectedOptions, product]);
 

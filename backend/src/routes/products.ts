@@ -11,6 +11,7 @@ import {
   productSlugSchema,
   inventoryUpdateSchema,
   inventoryAdjustmentSchema,
+  ProductQueryInput,
 } from '../validators/product.validator';
 
 const router = Router();
@@ -24,8 +25,9 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       // For public, only show active products
-      const query = { ...req.validatedQuery, status: 'ACTIVE' };
-      const result = await productService.findMany(query);
+      const validatedQuery = req.validatedQuery as Record<string, unknown>;
+      const query = { ...validatedQuery, status: 'ACTIVE' };
+      const result = await productService.findMany(query as ProductQueryInput & { status: string });
       res.json(result);
     } catch (error) {
       next(error);

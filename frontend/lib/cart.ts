@@ -137,6 +137,12 @@ export const useCartStore = create<CartState>()(
                 const { cart } = get();
                 if (!cart) return;
 
+                // Clear any pending update timeout for this item
+                if (updateTimeouts[itemId]) {
+                    clearTimeout(updateTimeouts[itemId]);
+                    delete updateTimeouts[itemId];
+                }
+
                 // Optimistic update
                 const updatedItems = cart.items.filter((item) => item.id !== itemId);
                 const newSubtotal = updatedItems.reduce((sum, item) => sum + item.lineTotal, 0);
