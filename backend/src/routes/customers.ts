@@ -255,7 +255,12 @@ router.patch(
       });
 
       res.json(customer);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle Prisma P2025 "Record not found" error
+      if (error.code === 'P2025') {
+        res.status(404).json({ error: 'Customer not found' });
+        return;
+      }
       next(error);
     }
   }

@@ -14,9 +14,11 @@ import {
     RotateCcw,
     Shield,
     ChevronDown,
-    ShoppingBag
+    ShoppingBag,
+    Loader2
 } from 'lucide-react';
-import { useProduct, useProductReviews, useProducts } from '@/lib/hooks';
+import { toast } from 'sonner';
+import { useProduct, useProductReviews, useProducts, useCheckWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/lib/hooks';
 import { useCartStore } from '@/lib/cart';
 import { formatPrice, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,14 @@ export default function ProductDetailPage() {
     const { data: reviewsData } = useProductReviews(product?.id || '');
     const { data: relatedData } = useProducts({ limit: 4 });
     const { addItem, isLoading: isAddingToCart } = useCartStore();
+
+    // Wishlist hooks
+    const { data: wishlistStatus } = useCheckWishlist(product?.id || '');
+    const addToWishlist = useAddToWishlist();
+    const removeFromWishlist = useRemoveFromWishlist();
+
+    const isInWishlist = wishlistStatus?.inWishlist ?? false;
+    const isWishlistLoading = addToWishlist.isPending || removeFromWishlist.isPending;
 
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
@@ -82,8 +92,40 @@ export default function ProductDetailPage() {
 
         try {
             await addItem(selectedVariant.id, quantity);
+            toast.success('Added to cart!', {
+                description: product?.title,
+                icon: '🛒',
+            });
         } catch (error) {
             console.error('Failed to add to cart:', error);
+            toast.error('Failed to add to cart', {
+                description: 'Please try again',
+            });
+        }
+    };
+
+    const handleWishlistToggle = async () => {
+        if (!product) return;
+
+        try {
+            if (isInWishlist) {
+                await removeFromWishlist.mutateAsync(product.id);
+                toast.success('Removed from wishlist', {
+                    description: product.title,
+                    icon: '💔',
+                });
+            } else {
+                await addToWishlist.mutateAsync(product.id);
+                toast.success('Added to wishlist!', {
+                    description: product.title,
+                    icon: '❤️',
+                });
+            }
+        } catch (error) {
+            console.error('Failed to update wishlist:', error);
+            toast.error('Please sign in', {
+                description: 'You need to be logged in to save items',
+            });
         }
     };
 
@@ -368,11 +410,22 @@ export default function ProductDetailPage() {
                                 {!inStock ? 'Out of Stock' : isAddingToCart ? 'Adding...' : 'Add to Cart'}
                             </Button>
                             <Button
+                                onClick={handleWishlistToggle}
+                                disabled={isWishlistLoading}
                                 variant="outline"
-                                className="h-14 px-6 bg-white font-bold border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+                                className={cn(
+                                    "h-14 px-6 font-bold border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all",
+                                    isInWishlist
+                                        ? "bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90"
+                                        : "bg-white hover:bg-[#FFEB3B]"
+                                )}
                             >
-                                <Heart className="w-5 h-5 mr-2" />
-                                Wishlist
+                                {isWishlistLoading ? (
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                ) : (
+                                    <Heart className={cn("w-5 h-5 mr-2", isInWishlist && "fill-current")} />
+                                )}
+                                {isInWishlist ? 'Saved' : 'Wishlist'}
                             </Button>
                         </div>
 

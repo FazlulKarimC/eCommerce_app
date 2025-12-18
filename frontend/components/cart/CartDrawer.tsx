@@ -139,7 +139,6 @@ export function CartDrawer() {
                                                         disabled={isLoading || item.quantity <= 1}
                                                         className="p-1 hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                         aria-label="Decrease quantity"
-                                                        aria-disabled={item.quantity <= 1}
                                                     >
                                                         <Minus className="w-3 h-3" />
                                                     </button>

@@ -90,7 +90,8 @@ export class CartService {
      * Add item to cart - uses atomic transaction to prevent race conditions
      */
     async addItem(cartId: string, input: AddToCartInput) {
-        return await prisma.$transaction(async (tx) => {
+        // Transaction for atomic operations only
+        await prisma.$transaction(async (tx) => {
             // Validate variant exists and is available
             const variant = await tx.productVariant.findUnique({
                 where: { id: input.variantId },
@@ -136,15 +137,11 @@ export class CartService {
                 where: { id: cartId },
                 data: { updatedAt: new Date() },
             });
-
-            // Return updated cart
-            const updatedCart = await tx.cart.findUnique({
-                where: { id: cartId },
-                include: this.getCartInclude(),
-            });
-
-            return this.formatCart(updatedCart!);
         });
+
+        // Fetch and return updated cart OUTSIDE the transaction
+        // This avoids the heavy include causing transaction timeout
+        return this.getCart(cartId);
     }
 
     /**

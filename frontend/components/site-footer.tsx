@@ -24,14 +24,16 @@ export function SiteFooter() {
             </p>
             <div className="flex gap-3 mt-6">
               {[
-                { id: 'instagram', Icon: Instagram, href: 'https://instagram.com' }, // TODO: Set real URL
-                { id: 'twitter', Icon: Twitter, href: 'https://twitter.com' }, // TODO: Set real URL
-                { id: 'youtube', Icon: Youtube, href: 'https://youtube.com' }, // TODO: Set real URL
+                { id: 'instagram', name: 'Instagram', Icon: Instagram, href: 'https://instagram.com' },
+                { id: 'twitter', name: 'Twitter', Icon: Twitter, href: 'https://twitter.com' },
+                { id: 'youtube', name: 'YouTube', Icon: Youtube, href: 'https://youtube.com' },
               ].map((social) => (
                 <Link
                   key={social.id}
                   href={social.href}
-                  aria-label={social.id}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Visit our ${social.name} page`}
                   className="w-10 h-10 border-2 border-white flex items-center justify-center hover:bg-secondary hover:text-black hover:border-secondary transition-colors rounded-lg"
                 >
                   <social.Icon className="h-5 w-5" />

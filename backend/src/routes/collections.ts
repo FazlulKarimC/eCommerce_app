@@ -139,7 +139,8 @@ router.post(
     validateBody(createCollectionSchema),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            let finalSlug = req.body.slug || generateSlug(req.body.title);
+            // Normalize slug: trim whitespace and convert to lowercase for consistency
+            let finalSlug = (req.body.slug || generateSlug(req.body.title)).trim().toLowerCase();
             let collection;
 
             try {

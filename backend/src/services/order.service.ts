@@ -392,6 +392,29 @@ export class OrderService {
     }
 
     /**
+     * Get revenue stats - efficient server-side aggregation
+     */
+    async getRevenueStats() {
+        const result = await prisma.order.aggregate({
+            _sum: { total: true },
+            where: {
+                status: { in: ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'] },
+            },
+        });
+
+        return {
+            totalRevenue: result._sum.total ? parseFloat(result._sum.total.toString()) : 0,
+        };
+    }
+
+    /**
+     * Get total order count
+     */
+    async getOrderCount() {
+        return prisma.order.count();
+    }
+
+    /**
      * Mock payment processor
      */
     private async processPayment(

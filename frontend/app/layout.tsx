@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 
 import { Analytics } from "@vercel/analytics/next"
+import { Toaster } from "sonner"
 import "./globals.css"
 
 import { DM_Sans, Space_Mono, Source_Serif_4 } from 'next/font/google'
@@ -64,6 +65,17 @@ export default function RootLayout({
           {children}
           <SiteFooter />
           <CartDrawer />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                border: '3px solid black',
+                borderRadius: '12px',
+                boxShadow: '4px 4px 0px #000',
+                fontWeight: 600,
+              },
+            }}
+          />
         </QueryProvider>
         <Analytics />
       </body>

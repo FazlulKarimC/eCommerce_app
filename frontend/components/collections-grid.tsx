@@ -1,31 +1,23 @@
+'use client'
+
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, Folder } from "lucide-react"
+import { useCollections } from "@/lib/hooks"
 
-const collections = [
-  {
-    title: "STREETWEAR",
-    image: "/streetwear-collection.png",
-    color: "bg-secondary",
-    items: "124 Items",
-  },
-  {
-    title: "ESSENTIALS",
-    image: "/essentials-collection.png",
-    color: "bg-primary",
-    textColor: "text-white",
-    items: "89 Items",
-  },
-  {
-    title: "ACCESSORIES",
-    image: "/accessories-collection.png",
-    color: "bg-black",
-    textColor: "text-white",
-    items: "56 Items",
-  },
+// Color palette for collections (cycles through these)
+const collectionColors = [
+  { color: "bg-secondary", textColor: "" },
+  { color: "bg-primary", textColor: "text-white" },
+  { color: "bg-black", textColor: "text-white" },
 ]
 
 export function CollectionsGrid() {
+  const { data: collections, isLoading } = useCollections()
+
+  // Take first 3 collections for the grid
+  const displayCollections = collections?.slice(0, 3) || []
+
   return (
     <section className="py-16 bg-muted">
       <div className="container mx-auto px-4">
@@ -46,42 +38,74 @@ export function CollectionsGrid() {
         </div>
 
         {/* Collections Grid */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {collections.map((collection, index) => (
-            <Link
-              key={collection.title}
-              href="/collections"
-              className={`group relative border-4 border-black shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all overflow-hidden rounded-xl ${index === 1 ? "md:-translate-y-4" : ""
-                }`}
-            >
-              <div className="aspect-square relative">
-                <Image
-                  src={collection.image || "/placeholder.svg"}
-                  alt={collection.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                {/* Solid Color Overlay */}
-                <div className={`absolute inset-0 ${collection.color} opacity-80 mix-blend-multiply`} />
-
-                {/* Content */}
-                <div
-                  className={`absolute inset-0 p-6 flex flex-col justify-between ${collection.textColor || "text-black"}`}
+        {isLoading ? (
+          <div className="grid md:grid-cols-3 gap-6">
+            {[0, 1, 2].map((index) => (
+              <div
+                key={index}
+                className={`border-4 border-black shadow-md rounded-xl overflow-hidden animate-pulse ${index === 1 ? "md:-translate-y-4" : ""
+                  }`}
+              >
+                <div className="aspect-square bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        ) : displayCollections.length === 0 ? (
+          <div className="text-center py-20">
+            <Folder className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <p className="font-bold text-gray-600">No collections yet</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            {displayCollections.map((collection, index) => {
+              const colorStyle = collectionColors[index % collectionColors.length]
+              return (
+                <Link
+                  key={collection.id}
+                  href={`/collections/${collection.slug}`}
+                  className={`group relative border-4 border-black shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all overflow-hidden rounded-xl ${index === 1 ? "md:-translate-y-4" : ""
+                    }`}
                 >
-                  <div className="self-end">
-                    <div className="w-12 h-12 border-4 border-current flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors rounded-lg">
-                      <ArrowUpRight className="h-6 w-6" />
+                  <div className="aspect-square relative">
+                    {collection.image ? (
+                      <Image
+                        src={collection.image}
+                        alt={collection.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <Folder className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    {/* Solid Color Overlay */}
+                    <div className={`absolute inset-0 ${colorStyle.color} opacity-80 mix-blend-multiply`} />
+
+                    {/* Content */}
+                    <div
+                      className={`absolute inset-0 p-6 flex flex-col justify-between ${colorStyle.textColor || "text-black"}`}
+                    >
+                      <div className="self-end">
+                        <div className="w-12 h-12 border-4 border-current flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors rounded-lg">
+                          <ArrowUpRight className="h-6 w-6" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-mono text-sm font-bold mb-1">
+                          {collection._count?.products || 0} Items
+                        </p>
+                        <h3 className="text-3xl md:text-4xl font-black tracking-tighter">
+                          {collection.title.toUpperCase()}
+                        </h3>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <p className="font-mono text-sm font-bold mb-1">{collection.items}</p>
-                    <h3 className="text-3xl md:text-4xl font-black tracking-tighter">{collection.title}</h3>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
 
         <Link
           href="/collections"

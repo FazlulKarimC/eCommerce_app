@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart';
+import { useAddToWishlist, useRemoveFromWishlist, useCheckWishlist } from '@/lib/hooks';
 import type { ProductListItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
@@ -14,7 +17,16 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-    const { addItem, isLoading } = useCartStore();
+    const { addItem, isLoading: isCartLoading } = useCartStore();
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+    // Wishlist hooks
+    const { data: wishlistStatus } = useCheckWishlist(product.id);
+    const addToWishlist = useAddToWishlist();
+    const removeFromWishlist = useRemoveFromWishlist();
+
+    const isInWishlist = wishlistStatus?.inWishlist ?? false;
+    const isWishlistLoading = addToWishlist.isPending || removeFromWishlist.isPending;
 
     // Safe array access - guard against empty arrays
     const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
@@ -32,11 +44,47 @@ export function ProductCard({ product, className }: ProductCardProps) {
         e.stopPropagation();
 
         if (firstVariant) {
+            setIsAddingToCart(true);
             try {
                 await addItem(firstVariant.id, 1);
+                toast.success('Added to cart!', {
+                    description: product.title,
+                    icon: '🛒',
+                });
             } catch (error) {
                 console.error('Failed to add to cart:', error);
+                toast.error('Failed to add to cart', {
+                    description: 'Please try again',
+                });
+            } finally {
+                setIsAddingToCart(false);
             }
+        }
+    };
+
+    const handleWishlistToggle = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            if (isInWishlist) {
+                await removeFromWishlist.mutateAsync(product.id);
+                toast.success('Removed from wishlist', {
+                    description: product.title,
+                    icon: '💔',
+                });
+            } else {
+                await addToWishlist.mutateAsync(product.id);
+                toast.success('Added to wishlist!', {
+                    description: product.title,
+                    icon: '❤️',
+                });
+            }
+        } catch (error) {
+            console.error('Failed to update wishlist:', error);
+            toast.error('Please sign in', {
+                description: 'You need to be logged in to save items',
+            });
         }
     };
 
@@ -76,16 +124,46 @@ export function ProductCard({ product, className }: ProductCardProps) {
                         )}
                     </div>
 
-                    {/* Quick Add Button */}
-                    <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {/* Action Buttons - appear on hover */}
+                    <div className="absolute bottom-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {/* Wishlist Button */}
+                        <Button
+                            size="icon"
+                            onClick={handleWishlistToggle}
+                            disabled={isWishlistLoading}
+                            className={cn(
+                                "w-10 h-10 border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000] transition-all",
+                                isInWishlist
+                                    ? "bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90"
+                                    : "bg-white text-black hover:bg-[#FFEB3B]"
+                            )}
+                            aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                        >
+                            {isWishlistLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Heart
+                                    className={cn(
+                                        "w-4 h-4 transition-all",
+                                        isInWishlist && "fill-current"
+                                    )}
+                                />
+                            )}
+                        </Button>
+
+                        {/* Add to Cart Button */}
                         <Button
                             size="icon"
                             onClick={handleAddToCart}
-                            disabled={isLoading || !firstVariant || firstVariant.inventoryQty === 0}
-                            className="bg-black text-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_#FFEB3B] hover:bg-[#FFEB3B] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000] transition-all"
+                            disabled={isAddingToCart || isCartLoading || !firstVariant || firstVariant.inventoryQty === 0}
+                            className="w-10 h-10 bg-black text-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_#FFEB3B] hover:bg-[#FFEB3B] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000] transition-all"
                             aria-label="Add to cart"
                         >
-                            <ShoppingBag className="w-4 h-4" />
+                            {isAddingToCart ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <ShoppingBag className="w-4 h-4" />
+                            )}
                         </Button>
                     </div>
 
@@ -119,7 +197,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     </div>
 
                     {/* Reviews count */}
-                    {product._count?.reviews && product._count.reviews > 0 && (
+                    {product._count?.reviews !== undefined && product._count.reviews > 0 && (
                         <p className="text-sm text-gray-500 mt-1">
                             {product._count.reviews} reviews
                         </p>

@@ -33,28 +33,21 @@ function useDashboardStats() {
     return useQuery<DashboardStats>({
         queryKey: ['admin', 'dashboard'],
         queryFn: async () => {
-            // Fetch all required data
-            // Note: For a production app, create a dedicated /orders/revenue endpoint
-            // to aggregate revenue server-side instead of fetching all orders
-            const [allOrdersRes, recentOrdersRes, customersRes, productsRes] = await Promise.all([
-                api.get('/orders/admin?limit=1000'), // Fetch more orders for revenue calculation
-                api.get('/orders/admin?limit=5'),    // Only recent 5 for display
+            // Fetch stats from server-side aggregation endpoints
+            const [statsRes, recentOrdersRes, customersRes, productsRes] = await Promise.all([
+                api.get('/orders/stats'),           // Server-side aggregated revenue
+                api.get('/orders/admin?limit=5'),   // Only recent 5 for display
                 api.get('/customers?limit=1'),
                 api.get('/products?limit=1'),
             ]);
 
-            const allOrders = allOrdersRes.data.orders || [];
             const recentOrders = recentOrdersRes.data.orders || [];
-            const totalOrders = allOrdersRes.data.pagination?.total || 0;
             const totalCustomers = customersRes.data.pagination?.total || 0;
             const totalProducts = productsRes.data.pagination?.total || 0;
 
-            // Calculate total revenue from ALL orders (not just recent 5)
-            const totalRevenue = allOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
-
             return {
-                totalRevenue,
-                totalOrders,
+                totalRevenue: statsRes.data.totalRevenue || 0,
+                totalOrders: statsRes.data.totalOrders || 0,
                 totalCustomers,
                 totalProducts,
                 recentOrders: recentOrders.slice(0, 5),
