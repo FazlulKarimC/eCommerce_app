@@ -76,7 +76,7 @@ export function CartDrawer() {
                         <Button
                             onClick={closeCart}
                             asChild
-                            className="bg-black text-secondary hover:bg-gray-800 border-4 border-black rounded-lg px-6 py-3 font-bold shadow-[4px_4px_0px_0px_#FFEB3B] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                            className="bg-black text-secondary hover:bg-gray-800 border-4 border-black rounded-lg px-6 py-3 font-bold shadow-[4px_4px_0px_0px_#FACC15] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
                         >
                             <Link href="/products">
                                 Start Shopping
@@ -91,7 +91,7 @@ export function CartDrawer() {
                             {cart.items.map((item) => (
                                 <div
                                     key={item.id}
-                                    className="bg-white rounded-lg border-3 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                    className="bg-white rounded-lg border-4 border-black p-2.5 shadow-[4px_4px_0px_0px_#000]"
                                 >
                                     <div className="flex gap-3">
                                         {/* Image */}
@@ -200,7 +200,7 @@ export function CartDrawer() {
                             {/* Buttons - Smaller buttons */}
                             <Button
                                 asChild
-                                className="w-full bg-black text-secondary hover:bg-gray-800 border-3 border-black rounded-lg py-4 font-black text-sm shadow-[3px_3px_0px_0px_#FFEB3B] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                className="w-full bg-black text-secondary hover:bg-gray-800 border-4 border-black rounded-lg py-4 font-black text-sm shadow-[4px_4px_0px_0px_#FACC15] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
                             >
                                 <Link href="/checkout" onClick={closeCart}>
                                     Checkout
@@ -211,7 +211,7 @@ export function CartDrawer() {
                                 onClick={closeCart}
                                 asChild
                                 variant="outline"
-                                className="w-full mt-2 border-3 border-black rounded-lg py-3 font-bold text-sm hover:bg-primary hover:text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all bg-transparent"
+                                className="w-full mt-2 border-4 border-black rounded-lg py-3 font-bold text-sm hover:bg-primary hover:text-black shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all bg-transparent"
                             >
                                 <Link href="/products">Continue Shopping</Link>
                             </Button>

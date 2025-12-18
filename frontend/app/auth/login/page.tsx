@@ -48,7 +48,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center py-12 bg-gray-50">
+        <div className="min-h-[80vh] flex items-center justify-center py-12 bg-[#FAFAFA]">
             <div className="container max-w-md px-4">
                 <Card shadow="lg">
                     <CardContent className="p-8">

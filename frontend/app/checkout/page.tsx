@@ -183,7 +183,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="py-8 min-h-screen bg-gray-50">
+    <div className="py-8 min-h-screen bg-[#FAFAFA]">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold mb-8 hover:text-red-500 transition-colors">

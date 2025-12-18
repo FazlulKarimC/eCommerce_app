@@ -90,7 +90,7 @@ export default function TrackOrderPage() {
     const isCancelled = order && (order.status === 'CANCELLED' || order.status === 'REFUNDED');
 
     return (
-        <div className="py-12 min-h-screen bg-gray-50">
+        <div className="py-12 min-h-screen bg-[#FAFAFA]">
             <div className="container mx-auto px-4 max-w-3xl">
                 {/* Header */}
                 <div className="text-center mb-12">

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui';
 
 export default function ComingSoonPage() {
     return (
-        <div className="min-h-[80vh] flex items-center justify-center py-20 bg-gray-50">
+        <div className="min-h-[80vh] flex items-center justify-center py-20 bg-[#FAFAFA]">
             <div className="container max-w-2xl px-4 text-center">
                 {/* Giant Icon */}
                 <div className="relative mb-8">

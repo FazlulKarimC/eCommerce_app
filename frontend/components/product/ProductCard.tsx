@@ -93,7 +93,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             href={`/products/${product.slug}`}
             className={cn("block", className)}
         >
-            <div className="group bg-white border-4 border-black rounded-xl overflow-hidden shadow-[6px_6px_0px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_#000] transition-all duration-300">
+            <div className="group bg-white border-4 border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_#000] transition-all duration-300">
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-gray-100">
                     {firstImage ? (
@@ -113,12 +113,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     {/* Badges */}
                     <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
                         {product.featured && (
-                            <span className="inline-block bg-[#FFEB3B] text-black font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] -rotate-3">
+                            <span className="inline-block bg-[#FACC15] text-black font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] -rotate-3">
                                 NEW
                             </span>
                         )}
                         {isOnSale && (
-                            <span className="inline-block bg-[#FF3B30] text-white font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] rotate-2">
+                            <span className="inline-block bg-[#EF4444] text-white font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] rotate-2">
                                 SALE
                             </span>
                         )}
@@ -132,10 +132,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             onClick={handleWishlistToggle}
                             disabled={isWishlistLoading}
                             className={cn(
-                                "w-10 h-10 border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000] transition-all",
+                                "w-10 h-10 border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all",
                                 isInWishlist
-                                    ? "bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90"
-                                    : "bg-white text-black hover:bg-[#FFEB3B]"
+                                    ? "bg-[#EF4444] text-white hover:bg-[#EF4444]/90"
+                                    : "bg-white text-black hover:bg-[#FACC15]"
                             )}
                             aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                         >
@@ -156,7 +156,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             size="icon"
                             onClick={handleAddToCart}
                             disabled={isAddingToCart || isCartLoading || !firstVariant || firstVariant.inventoryQty === 0}
-                            className="w-10 h-10 bg-black text-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_#FFEB3B] hover:bg-[#FFEB3B] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000] transition-all"
+                            className="w-10 h-10 bg-black text-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#FACC15] hover:bg-[#FACC15] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all"
                             aria-label="Add to cart"
                         >
                             {isAddingToCart ? (
@@ -179,7 +179,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
                 {/* Content */}
                 <div className="p-4">
-                    <h3 className="font-bold text-lg group-hover:text-[#FF3B30] transition-colors line-clamp-1">
+                    <h3 className="font-bold text-lg group-hover:text-[#EF4444] transition-colors line-clamp-1">
                         {product.title}
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
@@ -189,7 +189,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                                 <span className="text-gray-400 line-through text-sm">
                                     {formatPrice(compareAtPrice!)}
                                 </span>
-                                <span className="bg-[#FF3B30] text-white font-mono text-xs font-bold px-2 py-0.5 rounded">
+                                <span className="bg-[#EF4444] text-white font-mono text-xs font-bold px-2 py-0.5 rounded">
                                     -{discountPercent}%
                                 </span>
                             </>

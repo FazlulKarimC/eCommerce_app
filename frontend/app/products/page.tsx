@@ -52,8 +52,8 @@ function FilterSidebar({
                             key={gender.value}
                             onClick={() => setSelectedGender(gender.value)}
                             className={`px-4 py-2 text-sm font-bold border-4 border-black rounded-lg transition-all duration-200 ${selectedGender === gender.value
-                                ? "bg-[#0066ff] text-white shadow-[4px_4px_0px_0px_#000] -translate-x-0.5 -translate-y-0.5"
-                                : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000]"
+                                ? "bg-black text-white shadow-[4px_4px_0px_0px_#FACC15] -translate-x-0.5 -translate-y-0.5"
+                                : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000]"
                                 }`}
                         >
                             {gender.label}
@@ -69,8 +69,8 @@ function FilterSidebar({
                     <button
                         onClick={() => setSelectedCategory("All")}
                         className={`px-4 py-2 text-sm font-bold border-4 border-black rounded-lg transition-all duration-200 ${selectedCategory === "All"
-                            ? "bg-black text-white shadow-[4px_4px_0px_0px_#FFEB3B] -translate-x-0.5 -translate-y-0.5"
-                            : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000]"
+                            ? "bg-black text-white shadow-[4px_4px_0px_0px_#FACC15] -translate-x-0.5 -translate-y-0.5"
+                            : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000]"
                             }`}
                     >
                         All
@@ -80,8 +80,8 @@ function FilterSidebar({
                             key={cat.id}
                             onClick={() => setSelectedCategory(cat.slug)}
                             className={`px-4 py-2 text-sm font-bold border-4 border-black rounded-lg transition-all duration-200 ${selectedCategory === cat.slug
-                                ? "bg-black text-white shadow-[4px_4px_0px_0px_#FFEB3B] -translate-x-0.5 -translate-y-0.5"
-                                : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000]"
+                                ? "bg-black text-white shadow-[4px_4px_0px_0px_#FACC15] -translate-x-0.5 -translate-y-0.5"
+                                : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000]"
                                 }`}
                         >
                             {cat.name}
@@ -102,8 +102,8 @@ function FilterSidebar({
                             key={range.label}
                             onClick={() => setSelectedPriceRange(selectedPriceRange === range.label ? null : range.label)}
                             className={`px-4 py-2 text-sm font-bold border-4 border-black rounded-lg transition-all duration-200 ${selectedPriceRange === range.label
-                                ? "bg-[#FF3B30] text-white shadow-[4px_4px_0px_0px_#000] -translate-x-0.5 -translate-y-0.5"
-                                : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000]"
+                                ? "bg-[#EF4444] text-white shadow-[4px_4px_0px_0px_#000] -translate-x-0.5 -translate-y-0.5"
+                                : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000]"
                                 }`}
                         >
                             {range.label}
@@ -186,6 +186,11 @@ function ProductsPageContent() {
     ].filter(Boolean)
 
     const clearSearch = () => {
+        // Reset all local state to match the clean URL
+        setSelectedCategory("All")
+        setSelectedGender("all")
+        setSelectedPriceRange(null)
+        setCurrentPage(1)
         // Navigate to /products without search param to clear it
         router.push('/products')
     }
@@ -226,7 +231,7 @@ function ProductsPageContent() {
                 {/* Page Header */}
                 <div className="mb-12">
                     <div className="flex items-center gap-4 mb-4">
-                        <span className="inline-block bg-[#FFEB3B] text-black font-mono text-sm font-bold px-4 py-2 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] -rotate-2">
+                        <span className="inline-block bg-[#FACC15] text-black font-mono text-sm font-bold px-4 py-2 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] -rotate-2">
                             {searchQuery ? "SEARCH" : "SHOP"}
                         </span>
                         <h1 className="text-5xl md:text-6xl font-black uppercase">
@@ -322,7 +327,7 @@ function ProductsPageContent() {
                                 {activeFilters.map((filter) => (
                                     <span
                                         key={filter}
-                                        className="inline-flex items-center gap-1 bg-[#FFEB3B] text-black text-sm font-bold px-3 py-1 border-2 border-black rounded-lg"
+                                        className="inline-flex items-center gap-1 bg-[#FACC15] text-black text-sm font-bold px-3 py-1 border-2 border-black rounded-lg"
                                     >
                                         {filter}
                                         <button
@@ -338,13 +343,13 @@ function ProductsPageContent() {
                                                 if (filter === selectedCategory) handleCategoryChange("All")
                                                 if (filter === selectedPriceRange) handlePriceRangeChange(null)
                                             }}
-                                            className="hover:bg-black hover:text-[#FFEB3B] rounded-full p-0.5 transition-colors"
+                                            className="hover:bg-black hover:text-[#FACC15] rounded-full p-0.5 transition-colors"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>
                                     </span>
                                 ))}
-                                <button onClick={clearFilters} className="text-sm font-bold text-[#FF3B30] hover:underline">
+                                <button onClick={clearFilters} className="text-sm font-bold text-[#EF4444] hover:underline">
                                     Clear all
                                 </button>
                             </div>
@@ -354,11 +359,11 @@ function ProductsPageContent() {
                         {isLoading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {Array.from({ length: 6 }).map((_, i) => (
-                                    <div key={i} className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_#000] rounded-xl animate-pulse">
-                                        <div className="aspect-3/4 bg-gray-200" />
-                                        <div className="p-4 space-y-2">
+                                    <div key={i} className="border-4 border-black bg-white shadow-[4px_4px_0px_0px_#000] rounded-xl animate-pulse overflow-hidden">
+                                        <div className="aspect-square bg-gray-200" />
+                                        <div className="p-3 space-y-2">
                                             <div className="h-4 bg-gray-200 w-3/4 rounded" />
-                                            <div className="h-4 bg-gray-200 w-1/2 rounded" />
+                                            <div className="h-5 bg-gray-200 w-1/2 rounded" />
                                         </div>
                                     </div>
                                 ))}
@@ -377,7 +382,7 @@ function ProductsPageContent() {
                                 <p className="text-gray-600 mb-6">Try adjusting your filters to find what you&apos;re looking for.</p>
                                 <Button
                                     onClick={clearFilters}
-                                    className="bg-[#FFEB3B] text-black font-bold border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000] transition-all"
+                                    className="bg-[#FACC15] text-black font-bold border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all"
                                 >
                                     Clear Filters
                                 </Button>
@@ -390,7 +395,7 @@ function ProductsPageContent() {
                                 <button
                                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                     disabled={currentPage === 1}
-                                    className="w-12 h-12 flex items-center justify-center border-4 border-black rounded-lg font-bold bg-white shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000] transition-all disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_#000]"
+                                    className="w-12 h-12 flex items-center justify-center border-4 border-black rounded-lg font-bold bg-white shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_#000]"
                                 >
                                     <ChevronLeft className="w-5 h-5" />
                                 </button>
@@ -412,8 +417,8 @@ function ProductsPageContent() {
                                             key={pageNum}
                                             onClick={() => setCurrentPage(pageNum)}
                                             className={`w-12 h-12 flex items-center justify-center border-4 border-black rounded-lg font-bold transition-all ${currentPage === pageNum
-                                                ? "bg-black text-white shadow-[4px_4px_0px_0px_#FFEB3B]"
-                                                : "bg-white shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000]"
+                                                ? "bg-black text-white shadow-[4px_4px_0px_0px_#FACC15]"
+                                                : "bg-white shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000]"
                                                 }`}
                                         >
                                             {pageNum}
@@ -423,7 +428,7 @@ function ProductsPageContent() {
                                 <button
                                     onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
                                     disabled={currentPage === pagination.totalPages}
-                                    className="w-12 h-12 flex items-center justify-center border-4 border-black rounded-lg font-bold bg-white shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000] transition-all disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_#000]"
+                                    className="w-12 h-12 flex items-center justify-center border-4 border-black rounded-lg font-bold bg-white shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_#000]"
                                 >
                                     <ChevronRight className="w-5 h-5" />
                                 </button>
@@ -444,14 +449,14 @@ export default function ProductsPage() {
                 <div className="min-h-screen bg-[#FAFAFA]">
                     <div className="container mx-auto px-4 py-16">
                         <div className="animate-pulse">
-                            <div className="h-12 w-64 bg-gray-200 mb-8 rounded" />
+                            <div className="h-12 w-64 bg-gray-200 mb-8 rounded-lg" />
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {Array.from({ length: 6 }).map((_, i) => (
-                                    <div key={i} className="border-4 border-black rounded-xl">
-                                        <div className="aspect-3/4 bg-gray-200" />
-                                        <div className="p-4 space-y-2">
+                                    <div key={i} className="border-4 border-black rounded-xl bg-white shadow-[4px_4px_0px_0px_#000] overflow-hidden">
+                                        <div className="aspect-square bg-gray-200" />
+                                        <div className="p-3 space-y-2">
                                             <div className="h-4 bg-gray-200 w-3/4 rounded" />
-                                            <div className="h-4 bg-gray-200 w-1/2 rounded" />
+                                            <div className="h-5 bg-gray-200 w-1/2 rounded" />
                                         </div>
                                     </div>
                                 ))}

@@ -60,14 +60,14 @@ function CollectionDetailContent() {
             <div className="min-h-screen bg-[#FAFAFA]">
                 <main className="container mx-auto px-4 py-20 text-center">
                     <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                        <div className="w-20 h-20 mx-auto mb-6 bg-[#FFEB3B] border-4 border-black rounded-xl flex items-center justify-center">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-[#FACC15] border-4 border-black rounded-xl flex items-center justify-center">
                             <Folder className="w-10 h-10" />
                         </div>
                         <h1 className="text-3xl font-black mb-2">COLLECTION NOT FOUND</h1>
                         <p className="text-muted-foreground mb-8">The collection you're looking for doesn't exist.</p>
                         <Link
                             href="/collections"
-                            className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+                            className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
                         >
                             VIEW ALL COLLECTIONS
                         </Link>
@@ -85,9 +85,9 @@ function CollectionDetailContent() {
                     <nav className="mb-6">
                         <Link
                             href="/collections"
-                            className="inline-flex items-center gap-2 text-sm font-bold hover:text-[#FF3B30] transition-colors group"
+                            className="inline-flex items-center gap-2 text-sm font-bold hover:text-[#EF4444] transition-colors group"
                         >
-                            <div className="w-8 h-8 bg-white border-3 border-black rounded-lg flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-[3px] group-hover:translate-y-[3px] transition-all">
+                            <div className="w-8 h-8 bg-white border-4 border-black rounded-lg flex items-center justify-center shadow-[4px_4px_0px_0px_#000] group-hover:shadow-none group-hover:translate-x-[4px] group-hover:translate-y-[4px] transition-all">
                                 <ArrowLeft className="w-4 h-4" />
                             </div>
                             <span>Back to Collections</span>
@@ -95,7 +95,7 @@ function CollectionDetailContent() {
                     </nav>
 
                     {/* Collection Header */}
-                    <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="border-4 border-black rounded-2xl overflow-hidden mb-10 shadow-[4px_4px_0px_0px_#000]">
                         <div className="relative h-64 md:h-80 bg-black">
                             {collection.image ? (
                                 <Image
@@ -115,7 +115,7 @@ function CollectionDetailContent() {
 
                             {/* Content */}
                             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                                <span className="inline-block bg-[#FF3B30] text-white font-mono text-xs font-bold px-3 py-1.5 border-3 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -rotate-2 mb-4">
+                                <span className="inline-block bg-[#EF4444] text-white font-mono text-xs font-bold px-3 py-1.5 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] -rotate-2 mb-4">
                                     COLLECTION
                                 </span>
                                 <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter">
@@ -131,7 +131,7 @@ function CollectionDetailContent() {
                     {/* Toolbar */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                         <div className="flex items-center gap-3">
-                            <span className="bg-black text-white font-mono text-sm font-bold px-4 py-2 rounded-lg border-3 border-black">
+                            <span className="bg-black text-white font-mono text-sm font-bold px-4 py-2 rounded-lg border-4 border-black">
                                 {pagination?.total || products.length} PRODUCTS
                             </span>
                         </div>
@@ -144,7 +144,7 @@ function CollectionDetailContent() {
                                         setSortBy(e.target.value);
                                         setPage(1);
                                     }}
-                                    className="appearance-none bg-white border-4 border-black rounded-xl px-4 py-3 pr-12 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all cursor-pointer focus:outline-none focus:ring-0"
+                                    className="appearance-none bg-white border-4 border-black rounded-xl px-4 py-3 pr-12 font-bold text-sm shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all cursor-pointer focus:outline-none focus:ring-0"
                                 >
                                     {sortOptions.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -155,7 +155,7 @@ function CollectionDetailContent() {
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
                             </div>
 
-                            <button className="flex items-center gap-2 bg-[#FFEB3B] border-4 border-black rounded-xl px-4 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all">
+                            <button className="flex items-center gap-2 bg-[#FACC15] border-4 border-black rounded-xl px-4 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all">
                                 <SlidersHorizontal className="w-4 h-4" />
                                 FILTERS
                             </button>
@@ -166,7 +166,7 @@ function CollectionDetailContent() {
                     {isLoadingProducts ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {Array.from({ length: 8 }).map((_, i) => (
-                                <div key={i} className="border-4 border-black rounded-2xl bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-pulse overflow-hidden">
+                                <div key={i} className="border-4 border-black rounded-2xl bg-white shadow-[4px_4px_0px_0px_#000] animate-pulse overflow-hidden">
                                     <div className="aspect-square bg-muted" />
                                     <div className="p-4 space-y-2">
                                         <div className="h-4 bg-muted rounded w-3/4" />
@@ -177,7 +177,7 @@ function CollectionDetailContent() {
                         </div>
                     ) : products.length === 0 ? (
                         <div className="text-center py-20">
-                            <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                            <div className="inline-block bg-white border-4 border-black rounded-2xl p-12 shadow-[4px_4px_0px_0px_#000]">
                                 <Folder className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
                                 <p className="text-xl font-black">No products in this collection</p>
                                 <p className="text-muted-foreground mt-2">
@@ -204,7 +204,7 @@ function CollectionDetailContent() {
                                                 "w-12 h-12 border-4 border-black rounded-xl font-black text-lg transition-all",
                                                 page === i + 1
                                                     ? "bg-black text-white shadow-none"
-                                                    : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]",
+                                                    : "bg-white shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]",
                                             )}
                                         >
                                             {i + 1}

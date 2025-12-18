@@ -74,6 +74,33 @@ Our design strictly uses **4 colors only**. No exceptions.
 | 3️⃣ | Black bg + White text | Premium/Bold (Footer, Badges) |
 | 4️⃣ | White bg + Black text | Readable content (Body, Cards) |
 
+### Semantic Color Exception
+
+> [!NOTE]
+> While the core palette is limited to 4 colors, **semantic/status colors** are allowed for meaningful UI feedback:
+
+| Color | Hex Code | Tailwind | Allowed Usage |
+|-------|----------|----------|---------------|
+| **Success Green** | `#22C55E` | `green-500` | Order status (delivered, confirmed), success messages, progress indicators, free shipping badges, valid form states |
+
+**Rules for Semantic Colors:**
+- ✅ Only for **status indicators** and **feedback states**
+- ✅ Use sparingly - should not dominate the visual hierarchy
+- ✅ Never use for branding elements (logos, hero sections, CTAs)
+- ✅ Pair with black borders to maintain brutalist aesthetic
+- ❌ Do NOT use blue, purple, or other colors outside this exception
+
+```tsx
+// ✅ CORRECT: Green for status indicator
+<Badge className="bg-green-500 text-white border-2 border-black">DELIVERED</Badge>
+
+// ✅ CORRECT: Green for success feedback
+<p className="text-green-600 font-bold">Order confirmed!</p>
+
+// ❌ WRONG: Green for CTA button (use red instead)
+<Button className="bg-green-500">Add to Cart</Button>
+```
+
 ---
 
 ## 🔤 Typography

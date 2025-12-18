@@ -156,7 +156,7 @@ export default function ProductDetailPage() {
                         The product you&apos;re looking for doesn&apos;t exist.
                     </p>
                     <Link href="/products" className="inline-block mt-8">
-                        <Button className="bg-black text-white font-bold border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#FFEB3B] hover:shadow-[6px_6px_0px_0px_#FFEB3B] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all">
+                        <Button className="bg-black text-white font-bold border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#FACC15] hover:shadow-[8px_8px_0px_0px_#FACC15] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all">
                             Back to Products
                         </Button>
                     </Link>
@@ -182,8 +182,8 @@ export default function ProductDetailPage() {
         const colors: Record<string, string> = {
             white: '#FFFFFF',
             black: '#000000',
-            yellow: '#FFEB3B',
-            red: '#FF3B30',
+            yellow: '#FACC15',
+            red: '#EF4444',
             blue: '#2196F3',
             navy: '#1a237e',
             green: '#4CAF50',
@@ -223,12 +223,12 @@ export default function ProductDetailPage() {
                         {/* Main Image */}
                         <div className="relative aspect-square bg-white border-4 border-black rounded-xl overflow-hidden shadow-[8px_8px_0px_0px_#000]">
                             {product.featured && (
-                                <span className="absolute top-4 left-4 z-10 bg-[#FFEB3B] text-black font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg -rotate-3 shadow-[2px_2px_0px_0px_#000]">
+                                <span className="absolute top-4 left-4 z-10 bg-[#FACC15] text-black font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg -rotate-3 shadow-[2px_2px_0px_0px_#000]">
                                     NEW
                                 </span>
                             )}
                             {isOnSale && (
-                                <span className="absolute top-4 right-4 z-10 bg-[#FF3B30] text-white font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg rotate-3 shadow-[2px_2px_0px_0px_#000]">
+                                <span className="absolute top-4 right-4 z-10 bg-[#EF4444] text-white font-mono text-xs font-bold px-3 py-1 border-2 border-black rounded-lg rotate-3 shadow-[2px_2px_0px_0px_#000]">
                                     -{discountPercent}%
                                 </span>
                             )}
@@ -255,7 +255,7 @@ export default function ProductDetailPage() {
                                         key={img.id}
                                         onClick={() => setCurrentImageIndex(idx)}
                                         className={`relative w-20 h-20 border-4 rounded-lg overflow-hidden transition-all ${currentImageIndex === idx
-                                            ? "border-black shadow-[4px_4px_0px_0px_#FFEB3B] -translate-x-0.5 -translate-y-0.5"
+                                            ? "border-black shadow-[4px_4px_0px_0px_#FACC15] -translate-x-0.5 -translate-y-0.5"
                                             : "border-gray-300 hover:border-black"
                                             }`}
                                     >
@@ -287,7 +287,7 @@ export default function ProductDetailPage() {
                                         <Star
                                             key={i}
                                             className={`w-5 h-5 ${i < Math.round(reviewsData.stats.averageRating)
-                                                ? "fill-[#FFEB3B] text-[#FFEB3B]"
+                                                ? "fill-[#FACC15] text-[#FACC15]"
                                                 : "text-gray-300"
                                                 }`}
                                         />
@@ -306,7 +306,7 @@ export default function ProductDetailPage() {
                                     <span className="text-2xl text-gray-400 line-through">
                                         {formatPrice(compareAtPrice)}
                                     </span>
-                                    <span className="bg-[#FF3B30] text-white font-mono text-sm font-bold px-3 py-1 border-2 border-black rounded-lg">
+                                    <span className="bg-[#EF4444] text-white font-mono text-sm font-bold px-3 py-1 border-2 border-black rounded-lg">
                                         SAVE {formatPrice(compareAtPrice - price)}
                                     </span>
                                 </>
@@ -357,8 +357,8 @@ export default function ProductDetailPage() {
                                                         [option.name]: value.value,
                                                     }))}
                                                     className={`min-w-[48px] px-4 py-2 font-bold border-4 border-black rounded-lg transition-all ${selectedOptions[option.name] === value.value
-                                                        ? "bg-black text-white shadow-[4px_4px_0px_0px_#FFEB3B] -translate-x-0.5 -translate-y-0.5"
-                                                        : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000]"
+                                                        ? "bg-black text-white shadow-[4px_4px_0px_0px_#FACC15] -translate-x-0.5 -translate-y-0.5"
+                                                        : "bg-white hover:bg-gray-100 shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000]"
                                                         }`}
                                                 >
                                                     {value.value}
@@ -394,7 +394,7 @@ export default function ProductDetailPage() {
                                 </button>
                             </div>
                             {selectedVariant && selectedVariant.inventoryQty <= 10 && selectedVariant.inventoryQty > 0 && (
-                                <p className="text-sm text-[#FF3B30] mt-2 font-bold">
+                                <p className="text-sm text-[#EF4444] mt-2 font-bold">
                                     Only {selectedVariant.inventoryQty} left in stock!
                                 </p>
                             )}
@@ -405,7 +405,7 @@ export default function ProductDetailPage() {
                             <Button
                                 onClick={handleAddToCart}
                                 disabled={!inStock || isAddingToCart}
-                                className="flex-1 h-14 bg-[#FFEB3B] text-black font-black text-lg uppercase border-4 border-black rounded-xl shadow-[6px_6px_0px_0px_#000] hover:shadow-[8px_8px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all disabled:opacity-50"
+                                className="flex-1 h-14 bg-[#FACC15] text-black font-black text-lg uppercase border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#000] hover:shadow-[8px_8px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all disabled:opacity-50"
                             >
                                 {!inStock ? 'Out of Stock' : isAddingToCart ? 'Adding...' : 'Add to Cart'}
                             </Button>
@@ -414,10 +414,10 @@ export default function ProductDetailPage() {
                                 disabled={isWishlistLoading}
                                 variant="outline"
                                 className={cn(
-                                    "h-14 px-6 font-bold border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all",
+                                    "h-14 px-6 font-bold border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#000] hover:shadow-[8px_8px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all",
                                     isInWishlist
-                                        ? "bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90"
-                                        : "bg-white hover:bg-[#FFEB3B]"
+                                        ? "bg-[#EF4444] text-white hover:bg-[#EF4444]/90"
+                                        : "bg-white hover:bg-[#FACC15]"
                                 )}
                             >
                                 {isWishlistLoading ? (
@@ -432,19 +432,19 @@ export default function ProductDetailPage() {
                         {/* Trust Badges */}
                         <div className="grid grid-cols-3 gap-4 pt-6 border-t-4 border-black mt-6">
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-2 bg-[#FFEB3B] border-4 border-black rounded-lg flex items-center justify-center shadow-[3px_3px_0px_0px_#000]">
+                                <div className="w-12 h-12 mx-auto mb-2 bg-[#FACC15] border-4 border-black rounded-lg flex items-center justify-center shadow-[4px_4px_0px_0px_#000]">
                                     <Truck className="w-6 h-6" />
                                 </div>
                                 <p className="font-bold text-xs uppercase">Free Shipping</p>
                             </div>
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-2 bg-[#FFEB3B] border-4 border-black rounded-lg flex items-center justify-center shadow-[3px_3px_0px_0px_#000]">
+                                <div className="w-12 h-12 mx-auto mb-2 bg-[#FACC15] border-4 border-black rounded-lg flex items-center justify-center shadow-[4px_4px_0px_0px_#000]">
                                     <RotateCcw className="w-6 h-6" />
                                 </div>
                                 <p className="font-bold text-xs uppercase">30-Day Returns</p>
                             </div>
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-2 bg-[#FFEB3B] border-4 border-black rounded-lg flex items-center justify-center shadow-[3px_3px_0px_0px_#000]">
+                                <div className="w-12 h-12 mx-auto mb-2 bg-[#FACC15] border-4 border-black rounded-lg flex items-center justify-center shadow-[4px_4px_0px_0px_#000]">
                                     <Shield className="w-6 h-6" />
                                 </div>
                                 <p className="font-bold text-xs uppercase">Secure Payment</p>
@@ -503,7 +503,7 @@ export default function ProductDetailPage() {
                 {relatedProducts.length > 0 && (
                     <div>
                         <div className="flex items-center gap-4 mb-8">
-                            <span className="inline-block bg-[#FF3B30] text-white font-mono text-sm font-bold px-4 py-2 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] -rotate-2">
+                            <span className="inline-block bg-[#EF4444] text-white font-mono text-sm font-bold px-4 py-2 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] -rotate-2">
                                 MORE
                             </span>
                             <h2 className="text-3xl md:text-4xl font-black uppercase">You May Also Like</h2>
