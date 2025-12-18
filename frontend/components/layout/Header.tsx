@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import {
     ShoppingBag,
     User,
@@ -14,22 +14,56 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/auth';
 import { useCartStore } from '@/lib/cart';
-import { Badge } from '@/components/ui';
 
 const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/collections', label: 'Collections' },
     { href: '/products', label: 'Shop All' },
-    { href: '/sale', label: 'Sale', highlight: true },
+    { href: '/collections/sale', label: 'Sale', highlight: true },
 ];
 
 export function Header() {
     const pathname = usePathname();
+    const router = useRouter();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const { user, isAuthenticated } = useAuthStore();
+    const { isAuthenticated } = useAuthStore();
     const { cart, toggleCart } = useCartStore();
+
+    // Focus input when search opens
+    useEffect(() => {
+        if (isSearchOpen && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [isSearchOpen]);
+
+    // Handle search submit
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+            setIsSearchOpen(false);
+            setSearchQuery('');
+        }
+    };
+
+    // Close search on escape
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsSearchOpen(false);
+                setSearchQuery('');
+            }
+        };
+        if (isSearchOpen) {
+            window.addEventListener('keydown', handleEscape);
+        }
+        return () => window.removeEventListener('keydown', handleEscape);
+    }, [isSearchOpen]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -86,16 +120,45 @@ export function Header() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                        {/* Search - TODO: Implement search functionality */}
-                        <button
-                            className="p-2 hover:bg-yellow-400 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label="Search (coming soon)"
-                            title="Search feature coming soon"
-                            disabled
-                            aria-disabled="true"
-                        >
-                            <Search className="w-5 h-5" />
-                        </button>
+                        {/* Search */}
+                        {isSearchOpen ? (
+                            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+                                <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search products..."
+                                    className="w-40 md:w-64 h-9 px-3 bg-white border-2 border-black rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                />
+                                <button
+                                    type="submit"
+                                    className="p-2 bg-black text-white hover:bg-yellow-400 hover:text-black transition-colors rounded-lg"
+                                    aria-label="Submit search"
+                                >
+                                    <Search className="w-4 h-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsSearchOpen(false);
+                                        setSearchQuery('');
+                                    }}
+                                    className="p-2 hover:bg-yellow-400 transition-colors rounded-lg"
+                                    aria-label="Close search"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </form>
+                        ) : (
+                            <button
+                                onClick={() => setIsSearchOpen(true)}
+                                className="p-2 hover:bg-yellow-400 transition-colors rounded-lg"
+                                aria-label="Open search"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                        )}
 
                         {/* Wishlist */}
                         {isAuthenticated && (

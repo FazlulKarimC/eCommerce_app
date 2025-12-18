@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { SlidersHorizontal, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { ProductCard } from "@/components/product/ProductCard"
 import { Button } from "@/components/ui/button"
@@ -117,6 +117,8 @@ function FilterSidebar({
 
 function ProductsPageContent() {
     const searchParams = useSearchParams()
+    const router = useRouter()
+    const searchQuery = searchParams?.get("search") || ""
     const [selectedGender, setSelectedGender] = useState("all")
     const [selectedCategory, setSelectedCategory] = useState(
         searchParams?.get("category") || "All"
@@ -163,6 +165,7 @@ function ProductsPageContent() {
     const { data, isLoading } = useProducts({
         page: currentPage,
         limit: 12,
+        search: searchQuery || undefined,
         category: getCategory(),
         sort,
         order,
@@ -176,16 +179,26 @@ function ProductsPageContent() {
     const pagination = data?.pagination
 
     const activeFilters = [
+        searchQuery ? `Search: "${searchQuery}"` : null,
         selectedGender !== "all" ? genders.find(g => g.value === selectedGender)?.label : null,
         selectedCategory !== "All" ? selectedCategory : null,
         selectedPriceRange,
     ].filter(Boolean)
+
+    const clearSearch = () => {
+        // Navigate to /products without search param to clear it
+        router.push('/products')
+    }
 
     const clearFilters = () => {
         setSelectedGender("all")
         setSelectedCategory("All")
         setSelectedPriceRange(null)
         setCurrentPage(1)
+        // If there's a search query, clear it by navigating
+        if (searchQuery) {
+            router.push('/products')
+        }
     }
 
     // Reset to page 1 when filters change
@@ -214,13 +227,17 @@ function ProductsPageContent() {
                 <div className="mb-12">
                     <div className="flex items-center gap-4 mb-4">
                         <span className="inline-block bg-[#FFEB3B] text-black font-mono text-sm font-bold px-4 py-2 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] -rotate-2">
-                            SHOP
+                            {searchQuery ? "SEARCH" : "SHOP"}
                         </span>
-                        <h1 className="text-5xl md:text-6xl font-black uppercase">All Products</h1>
+                        <h1 className="text-5xl md:text-6xl font-black uppercase">
+                            {searchQuery ? `Results for "${searchQuery}"` : "All Products"}
+                        </h1>
                     </div>
                     <div className="h-2 w-32 bg-black rounded-full" />
                     <p className="mt-4 text-lg text-gray-600 max-w-xl">
-                        Bold pieces for bold people. Browse our collection of brutally beautiful essentials.
+                        {searchQuery
+                            ? `Showing products matching your search.`
+                            : "Bold pieces for bold people. Browse our collection of brutally beautiful essentials."}
                     </p>
                 </div>
 
@@ -310,6 +327,11 @@ function ProductsPageContent() {
                                         {filter}
                                         <button
                                             onClick={() => {
+                                                // Check if filter is a search filter
+                                                if (filter?.toString().startsWith('Search:')) {
+                                                    clearSearch()
+                                                    return
+                                                }
                                                 // Check if filter is a gender label
                                                 const matchedGender = genders.find(g => g.label === filter)
                                                 if (matchedGender) handleGenderChange("all")

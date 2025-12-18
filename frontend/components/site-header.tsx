@@ -1,14 +1,51 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ShoppingBag, Menu, Search, User } from "lucide-react"
+import { ShoppingBag, Menu, Search, User, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/lib/cart"
 import { useAuthStore } from "@/lib/auth"
 
 export function SiteHeader() {
+  const router = useRouter()
   const { cart, toggleCart } = useCartStore()
   const { isAuthenticated } = useAuthStore()
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Focus input when search opens
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus()
+    }
+  }, [isSearchOpen])
+
+  // Handle search submit
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      setIsSearchOpen(false)
+      setSearchQuery("")
+    }
+  }
+
+  // Close search on escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSearchOpen(false)
+        setSearchQuery("")
+      }
+    }
+    if (isSearchOpen) {
+      window.addEventListener("keydown", handleEscape)
+    }
+    return () => window.removeEventListener("keydown", handleEscape)
+  }, [isSearchOpen])
 
   return (
     <header className="sticky top-0 z-50 bg-secondary border-b-4 border-black">
@@ -49,13 +86,48 @@ export function SiteHeader() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
+            {/* Search */}
+            {isSearchOpen ? (
+              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search products..."
+                  className="w-40 md:w-64 h-9 px-3 bg-white border-2 border-black rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  className="border-2 border-black bg-black text-white hover:bg-yellow-400 hover:text-black rounded-lg"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setIsSearchOpen(false)
+                    setSearchQuery("")
+                  }}
+                  className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </form>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSearchOpen(true)}
+                className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            )}
             <Link href={isAuthenticated ? "/account" : "/auth/login"}>
               <Button
                 variant="ghost"
