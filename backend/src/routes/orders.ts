@@ -83,7 +83,8 @@ router.get(
       const order = await orderService.findById(req.params.id);
 
       // Check if user owns this order or is admin/staff
-      const isOwner = order.customerId === req.user!.userId;
+      // order.customer?.userId is the User ID, order.customerId is Customer ID
+      const isOwner = order.customer?.userId === req.user!.userId;
       const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'STAFF';
 
       if (!isOwner && !isStaff) {

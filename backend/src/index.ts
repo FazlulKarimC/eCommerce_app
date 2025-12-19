@@ -6,16 +6,21 @@ import { env } from './config/env';
 import { auth } from './config/auth';
 import routes from './routes';
 import { notFound, errorHandler } from './middleware/errorHandler';
+import { apiLimiter, authLimiter } from './middleware/rateLimit';
 
 const app = express();
 
 // Middleware
-const allowedOrigins = [
-  env.FRONTEND_URL,
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3002',
-].filter(Boolean);
+// In production: only allow the frontend URL
+// In development: also allow localhost for testing
+const allowedOrigins = env.isProduction
+  ? [env.FRONTEND_URL].filter(Boolean)
+  : [
+    env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+  ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -39,6 +44,10 @@ if (env.isDevelopment) {
     next();
   });
 }
+
+// Rate limiting
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter);
 
 // API Routes - Express 5 requires named splat parameters for wildcards
 app.all("/api/auth/{*splat}", toNodeHandler(auth));

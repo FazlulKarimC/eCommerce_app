@@ -4,18 +4,27 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./database";
 import { verifyPassword, hashPassword } from "../utils/password";
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const auth = betterAuth({
+    // Secret for signing session cookies - REQUIRED in production
+    secret: process.env.BETTER_AUTH_SECRET,
+
     database: prismaAdapter(prisma, {
         provider: "postgresql",
     }),
-    trustedOrigins: [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        process.env.FRONTEND_URL || "http://localhost:3000",
-    ].filter(Boolean) as string[],
+
+    // Trusted origins for CSRF protection
+    trustedOrigins: isProduction
+        ? [process.env.FRONTEND_URL].filter(Boolean) as string[]
+        : [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            process.env.FRONTEND_URL || "http://localhost:3000",
+        ].filter(Boolean) as string[],
+
     emailAndPassword: {
         enabled: true,
-        // We use our existing custom password verification to simple migration
         password: {
             hash: async (password) => {
                 return hashPassword(password);
@@ -25,6 +34,34 @@ export const auth = betterAuth({
             }
         }
     },
+
+    session: {
+        expiresIn: 60 * 60 * 24 * 7, // 7 days
+        updateAge: 60 * 60 * 24, // Update session every 24 hours
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60, // 5 minutes cache
+        },
+    },
+
+    advanced: {
+        // Always use secure cookies in production (HTTPS)
+        useSecureCookies: isProduction,
+
+        // Cookie settings for cross-domain auth (Vercel frontend ↔ Render backend)
+        cookies: {
+            session_token: {
+                attributes: {
+                    // "none" required for cross-domain cookies, "lax" for same-domain/localhost
+                    sameSite: isProduction ? "none" : "lax",
+                    // secure must be true when sameSite is "none"
+                    secure: isProduction,
+                    httpOnly: true,
+                },
+            },
+        },
+    },
+
     user: {
         additionalFields: {
             role: {
@@ -36,5 +73,4 @@ export const auth = betterAuth({
             enabled: true,
         }
     },
-    // We can allow "username" login if needed, or just email
 });

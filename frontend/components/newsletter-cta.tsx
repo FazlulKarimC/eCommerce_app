@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowRight, Loader2 } from "lucide-react"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export function NewsletterCTA() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -25,21 +27,22 @@ export function NewsletterCTA() {
     setStatus(null)
 
     try {
-      // TODO: Implement newsletter API call
-      // const response = await fetch('/api/newsletter', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email: trimmedEmail }),
-      // })
-      // if (!response.ok) throw new Error('Subscription failed')
+      const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const data = await response.json();
 
-      setStatus({ type: 'success', message: 'Thank you for subscribing!' })
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Subscription failed');
+      }
+
+      setStatus({ type: 'success', message: data.message || 'Thank you for subscribing!' })
       setEmail("")
-    } catch {
-      setStatus({ type: 'error', message: 'Something went wrong. Please try again.' })
+    } catch (err) {
+      setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Something went wrong. Please try again.' })
     } finally {
       setIsLoading(false)
     }

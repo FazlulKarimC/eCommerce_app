@@ -10,6 +10,8 @@ import customersRouter from './customers';
 import reviewsRouter from './reviews';
 import wishlistRouter from './wishlist';
 import discountsRouter from './discounts';
+import contactRouter from './contact';
+import newsletterRouter from './newsletter';
 
 const router = Router();
 
@@ -25,6 +27,8 @@ router.use('/customers', customersRouter);
 router.use('/reviews', reviewsRouter);
 router.use('/wishlist', wishlistRouter);
 router.use('/discounts', discountsRouter);
+router.use('/contact', contactRouter);
+router.use('/newsletter', newsletterRouter);
 
 // Health check
 router.get('/health', (req, res) => {

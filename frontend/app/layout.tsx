@@ -9,6 +9,7 @@ import { DM_Sans, Space_Mono, Source_Serif_4 } from 'next/font/google'
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { QueryProvider } from "@/components/providers/QueryProvider"
+import { AuthProvider } from "@/components/providers/AuthProvider"
 import { CartDrawer } from "@/components/cart/CartDrawer"
 
 // Initialize fonts
@@ -61,21 +62,23 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${dmSans.variable} ${spaceMono.variable} ${sourceSerif4.variable} font-sans antialiased`}>
         <QueryProvider>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
-          <CartDrawer />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                border: '3px solid black',
-                borderRadius: '12px',
-                boxShadow: '4px 4px 0px #000',
-                fontWeight: 600,
-              },
-            }}
-          />
+          <AuthProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+            <CartDrawer />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  border: '3px solid black',
+                  borderRadius: '12px',
+                  boxShadow: '4px 4px 0px #000',
+                  fontWeight: 600,
+                },
+              }}
+            />
+          </AuthProvider>
         </QueryProvider>
         <Analytics />
       </body>

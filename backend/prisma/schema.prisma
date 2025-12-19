@@ -190,6 +190,7 @@ model Product {
   tags        ProductTag[]
   reviews     Review[]
   metafields  Metafield[]
+  wishlistItems WishlistItem[]
 
   @@index([slug])
   @@index([status])
@@ -546,9 +547,11 @@ model WishlistItem {
   createdAt  DateTime @default(now())
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([customerId, productId])
   @@index([customerId])
+  @@index([productId])
 }
 
 // ============ SETTINGS & CONTENT ============

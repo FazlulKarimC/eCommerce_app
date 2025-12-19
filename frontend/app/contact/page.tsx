@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin, Send, Clock, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export default function ContactPage() {
     const [formState, setFormState] = useState({
         name: '',
@@ -14,20 +16,35 @@ export default function ContactPage() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setError(null);
 
-        // Simulate form submission
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            const response = await fetch(`${API_URL}/api/contact`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formState),
+            });
 
-        // TODO: Implement actual form submission (e.g., API call, Formspree, etc.)
-        console.log('Form submitted:', formState);
+            const data = await response.json();
 
-        setIsSubmitting(false);
-        setIsSubmitted(true);
-        setFormState({ name: '', email: '', subject: '', message: '' });
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to send message');
+            }
+
+            setIsSubmitted(true);
+            setFormState({ name: '', email: '', subject: '', message: '' });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -143,6 +160,13 @@ export default function ContactPage() {
                                     </div>
                                 ) : (
                                     <form onSubmit={handleSubmit} className="space-y-6">
+                                        {/* Error Alert */}
+                                        {error && (
+                                            <div className="bg-red-500 text-white px-4 py-3 rounded-lg border-4 border-black shadow-[4px_4px_0px_#000]">
+                                                <p className="font-bold">{error}</p>
+                                            </div>
+                                        )}
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label htmlFor="name" className="block font-bold text-sm uppercase tracking-wider mb-2">

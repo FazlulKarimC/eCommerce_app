@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/database';
 import { auth } from '../config/auth';
 import { fromNodeHeaders } from 'better-auth/node';
+import { UserRole } from '@prisma/client';
 
 // Extend Express Request to include user
 declare global {
@@ -10,7 +11,7 @@ declare global {
             user?: {
                 userId: string;
                 email: string;
-                role: any; // Role type will come from better-auth schema
+                role: UserRole;
                 sessionId?: string;
             };
         }
@@ -39,7 +40,7 @@ export async function authenticate(
         req.user = {
             userId: session.user.id,
             email: session.user.email,
-            role: (session.user as any).role,
+            role: (session.user as { role: UserRole }).role,
             sessionId: session.session.id
         };
 
@@ -69,7 +70,7 @@ export async function optionalAuth(
             req.user = {
                 userId: session.user.id,
                 email: session.user.email,
-                role: (session.user as any).role,
+                role: (session.user as { role: UserRole }).role,
                 sessionId: session.session.id
             };
         }

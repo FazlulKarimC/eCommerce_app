@@ -385,10 +385,25 @@ export class OrderService {
     }
 
     /**
-     * Get customer orders
+     * Get customer orders by user ID
+     * First finds the Customer record, then queries orders by Customer.id
      */
-    async getCustomerOrders(customerId: string, page = 1, limit = 10) {
-        return this.findMany({ customerId, page, limit });
+    async getCustomerOrders(userId: string, page = 1, limit = 10) {
+        // Order.customerId references Customer.id, not User.id
+        // We need to find the Customer record first
+        const customer = await prisma.customer.findUnique({
+            where: { userId },
+        });
+
+        if (!customer) {
+            // User has no customer profile yet - return empty
+            return {
+                orders: [],
+                pagination: { page, limit, total: 0, totalPages: 0 },
+            };
+        }
+
+        return this.findMany({ customerId: customer.id, page, limit });
     }
 
     /**

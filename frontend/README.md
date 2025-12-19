@@ -1,110 +1,187 @@
-# eCommerce Checkout Flow Simulation
+# 🎨 BRUTAL Frontend
 
-A complete 3-page eCommerce checkout flow built with Next.js, TypeScript, Tailwind CSS, and shadcn/ui components.
+<div align="center">
 
-## Features
+![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Tailwind CSS 4](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 
-### 🛍️ Landing Page
-- Product showcase with high-quality images
-- Variant selection (color, size)
-- Quantity selector with +/- controls
-- Dynamic price calculation
-- Responsive design
+**The face of BRUTAL — where Neo Brutalism meets modern e-commerce.**
 
-### 💳 Checkout Page
-- Comprehensive customer information form
-- Payment details with real-time validation
-- Dynamic order summary
-- Transaction simulation based on card number
-- Form validation with error handling
+*Thick borders. Hard shadows. Unforgettable UX.*
 
-### ✅ Thank You Page
-- Order confirmation with full details
-- Transaction status display (approved/declined/error)
-- Customer and payment information
-- Order summary and next steps
+</div>
 
-## Transaction Simulation
+---
 
-The payment simulation works based on the last digit of the card number:
+## ⚡ What's Inside
 
-- **Card ending in 1**: ✅ Approved Transaction
-- **Card ending in 2**: ❌ Declined Transaction  
-- **Card ending in 3**: ⚠️ Gateway Error/Failure
+This is the **Next.js 16** frontend for BRUTAL, featuring:
 
+- 🎯 **App Router** with React Server Components
+- 🔥 **Turbopack** for blazing fast development
+- 🎨 **Neo Brutalist UI** — custom design system
+- 🛒 **Full Shopping Experience** — cart, checkout, orders
+- 🔐 **Better Auth** integration with session persistence
+- 📱 **Fully Responsive** — mobile-first design
 
-## Tech Stack
+---
 
-- **Frontend**: Next.js 15 with TypeScript
-- **Styling**: Tailwind CSS v4
-- **UI Components**: shadcn/ui
-- **Form Handling**: React Hook Form with Zod validation
-- **State Management**: React Context
-- **Email**: Simulated email notifications (Mailtrap.io sandbox mode)
+## 🛠️ Tech Stack
 
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 16 (App Router) |
+| **UI Library** | React 19 |
+| **Styling** | Tailwind CSS 4 |
+| **State** | Zustand (client) + React Query (server) |
+| **Auth** | Better Auth client |
+| **Forms** | React Hook Form + Zod |
+| **Icons** | Lucide React |
+| **Toasts** | Sonner |
 
-## Installation & Setup
+---
 
-### Prerequisites
-- Node.js 18.18.0 or higher
-- npm or yarn
+## 📂 Project Structure
 
-### Steps
+```
+frontend/
+├── app/                    # Next.js App Router
+│   ├── (auth)/             # Login & Register
+│   ├── account/            # User dashboard
+│   │   ├── orders/         # Order history
+│   │   ├── addresses/      # Address book
+│   │   └── wishlist/       # Saved items
+│   ├── admin/              # Admin panel (protected)
+│   ├── products/           # Product catalog
+│   ├── collections/        # Curated collections
+│   ├── categories/         # Category pages
+│   ├── cart/               # Shopping cart
+│   ├── checkout/           # Checkout flow
+│   └── thank-you/          # Order confirmation
+│
+├── components/
+│   ├── ui/                 # Design system components
+│   ├── cart/               # Cart drawer & items
+│   ├── layout/             # Header, Footer
+│   └── providers/          # Context providers
+│
+└── lib/
+    ├── api.ts              # Axios instance + cold start retry
+    ├── auth.ts             # Auth store (Zustand)
+    ├── auth-client.ts      # Better Auth client
+    ├── cart.ts             # Cart store
+    ├── hooks.ts            # React Query hooks
+    └── utils.ts            # Helpers (formatPrice, cn, etc.)
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd ecommerce
-   ```
+---
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## 🚀 Quick Start
 
-3. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+```bash
+# Install dependencies
+npm install
 
-4. **Open your browser**
-   Navigate to `http://localhost:3000`
+# Start dev server (with backend running)
+npm run dev
 
-## Usage Flow
+# Build for production
+npm run build
 
-1. **Landing Page**: Select product variants and quantity, click "Buy Now"
-2. **Checkout Page**: Fill in customer and payment information
-3. **Thank You Page**: View order confirmation and status
+# Start production server
+npm run start
+```
 
+**Environment Variables** (`.env.local`):
 
-## Form Validations
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-### Customer Information
-- Full name (min 2 characters)
-- Valid email format
-- Phone number format validation
-- Address (min 5 characters)
-- City, State (min 2 characters)
-- ZIP code format (12345 or 12345-6789)
+---
 
-### Payment Information
-- Card number (exactly 1 digits)
-- Expiry date (MM/YY format, future date)
-- CVV (exactly 3 digits)
+## 🎨 Design System
 
+The UI follows a strict **Neo Brutalism** design language:
 
-## Testing Scenarios
+```
+┌──────────────────────────────────────────┐
+│  🟡 YELLOW #FACC15 — Highlights, badges  │
+│  🔴 RED    #EF4444 — CTAs, urgency       │
+│  ⚫ BLACK  #000000 — Borders, shadows    │
+│  ⚪ WHITE  #FFFFFF — Backgrounds         │
+└──────────────────────────────────────────┘
+```
 
-### Successful Purchase
-1. Use card number ending in 1 (e.g., `1`)
-2. Fill valid customer information
-3. Complete checkout → See success confirmation
+### Key Characteristics:
+- **4px black borders** on cards and inputs
+- **Offset shadows** — `4px 4px 0px #000`
+- **Lift hover effect** — elements "rise" on hover
+- **Bold typography** — DM Sans, Space Mono fonts
 
-### Declined Payment
-1. Use card number ending in 2 (e.g., `2`)
-2. Complete checkout → See declined message
+> 📖 **[Full Design System →](./DESIGN_SYSTEM.md)**
 
-### Payment Error
-1. Use card number ending in 3 (e.g., `3`)
-2. Complete checkout → See payment failure message
+---
 
+## 🔄 Cold Start Handling
+
+The API client includes automatic retry logic for Render cold starts:
+
+```typescript
+// Automatically retries on 502, 503, timeout
+const isColdStartError = 
+    error.code === 'ECONNABORTED' ||
+    error.response?.status === 503;
+
+// Waits 3s, retries up to 2 times
+```
+
+Users won't see confusing errors — just a brief wait.
+
+---
+
+## 🧪 Key Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| **Home** | `/` | Hero, featured products, collections |
+| **Products** | `/products` | Catalog with filters |
+| **Product Detail** | `/products/[slug]` | Images, variants, reviews |
+| **Cart** | `/cart` | Full cart page |
+| **Checkout** | `/checkout` | Checkout with discount codes |
+| **Account** | `/account` | User dashboard |
+| **Admin** | `/admin` | Admin dashboard (protected) |
+
+---
+
+## 📦 Key Components
+
+| Component | Purpose |
+|-----------|---------|
+| `<CartDrawer />` | Slide-out cart with live updates |
+| `<SiteHeader />` | Navigation, search, auth state |
+| `<ProductCard />` | Product display with quick add |
+| `<Badge />` | Neo-brutalist status badges |
+| `<Button />` | Multiple variants (primary, secondary, outline) |
+
+---
+
+## 🔐 Authentication
+
+Uses **Better Auth** with:
+- Session cookies (HTTP-only)
+- Auto-refresh on page load via `<AuthProvider />`
+- Role-based access (Customer, Staff, Admin)
+- Guest cart → User cart merging
+
+---
+
+<div align="center">
+
+### Built with 💛🖤
+
+*Part of the [BRUTAL E-Commerce](../README.md) project*
+
+</div>

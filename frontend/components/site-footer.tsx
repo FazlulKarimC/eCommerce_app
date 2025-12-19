@@ -78,6 +78,15 @@ export function SiteFooter() {
         {/* Bottom */}
         <div className="border-t-2 border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/40 text-sm font-medium">© 2025 BRUTAL. All rights reserved.</p>
+
+          {/* Built by Fazlul */}
+          <p className="text-white/60 text-sm font-medium flex items-center gap-2">
+            Built with <span className="text-red-500">♥</span> & dedication by{" "}
+            <span className="bg-yellow-400 text-black px-2 py-0.5 rounded font-bold text-xs uppercase tracking-wider">
+              Fazlul
+            </span>
+          </p>
+
           <div className="flex gap-6 text-sm">
             <Link href="/coming-soon" className="text-white/40 hover:text-white transition-colors font-medium">
               Privacy Policy

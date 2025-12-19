@@ -58,6 +58,7 @@ export function Footer() {
                                 e.preventDefault();
                                 const form = e.currentTarget;
                                 const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+                                const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
                                 const email = emailInput?.value?.trim();
 
                                 if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -65,10 +66,26 @@ export function Footer() {
                                     return;
                                 }
 
-                                // TODO: Implement newsletter API call
-                                // await api.post('/newsletter', { email });
-                                alert('Thank you for subscribing!');
-                                emailInput.value = '';
+                                try {
+                                    submitBtn.disabled = true;
+                                    submitBtn.textContent = 'Subscribing...';
+
+                                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+                                    const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ email }),
+                                    });
+
+                                    const data = await response.json();
+                                    alert(data.message || 'Thank you for subscribing!');
+                                    if (data.success) emailInput.value = '';
+                                } catch {
+                                    alert('Something went wrong. Please try again.');
+                                } finally {
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = 'Subscribe';
+                                }
                             }}
                         >
                             <Input
