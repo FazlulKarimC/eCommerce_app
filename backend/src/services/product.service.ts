@@ -287,7 +287,7 @@ export class ProductService {
                     where,
                     include: {
                         variants: { orderBy: { position: 'asc' }, take: 1 },
-                        images: { orderBy: { position: 'asc' }, take: 1 },
+                        images: { where: { deletedAt: null }, orderBy: { position: 'asc' }, take: 1 },
                         collections: { include: { collection: true } },
                         categories: { include: { category: true } },
                         _count: { select: { reviews: true } },
@@ -331,7 +331,7 @@ export class ProductService {
                 where,
                 include: {
                     variants: { orderBy: { position: 'asc' }, take: 1 },
-                    images: { orderBy: { position: 'asc' }, take: 1 },
+                    images: { where: { deletedAt: null }, orderBy: { position: 'asc' }, take: 1 },
                     collections: { include: { collection: true } },
                     categories: { include: { category: true } },
                     _count: { select: { reviews: true } },
@@ -455,7 +455,7 @@ export class ProductService {
                 orderBy: { position: 'asc' },
                 include: { values: { orderBy: { position: 'asc' } } },
             },
-            images: { orderBy: { position: 'asc' } },
+            images: { where: { deletedAt: null }, orderBy: { position: 'asc' } },
             tags: { include: { tag: true } },
             collections: { include: { collection: true } },
             categories: { include: { category: true } },

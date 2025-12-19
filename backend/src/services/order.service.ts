@@ -18,7 +18,7 @@ export class OrderService {
                         variant: {
                             include: {
                                 product: {
-                                    include: { images: { take: 1 } },
+                                    include: { images: { where: { deletedAt: null }, take: 1 } },
                                 },
                             },
                         },
@@ -460,12 +460,12 @@ export class OrderService {
                 include: {
                     variant: {
                         include: {
-                            product: { include: { images: { take: 1 } } },
+                            product: { include: { images: { where: { deletedAt: null }, take: 1 } } },
                         },
                     },
                 },
             },
-            customer: { include: { user: { select: { name: true, email: true } } } },
+            customer: true, // Include full customer to get userId for owner check
             shippingAddress: true,
             payments: true,
             fulfillments: true,

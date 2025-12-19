@@ -65,7 +65,7 @@ router.get(
                             product: {
                                 include: {
                                     variants: { take: 1, orderBy: { position: 'asc' } },
-                                    images: { take: 1, orderBy: { position: 'asc' } },
+                                    images: { where: { deletedAt: null }, take: 1, orderBy: { position: 'asc' } },
                                 },
                             },
                         },

@@ -69,7 +69,7 @@ export default function ThankYouPage({ params }: { params: Promise<{ orderNumber
           </CardHeader>
           <CardContent>
             <div className="space-y-3 mb-6">
-              {order.items.map((item) => (
+              {(order.items || []).map((item) => (
                 <div key={item.id} className="flex justify-between">
                   <span>
                     {item.productTitle} × {item.quantity}

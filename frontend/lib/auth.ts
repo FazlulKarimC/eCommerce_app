@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { authClient } from './auth-client';
 import { User } from './types';
+import { useCartStore } from './cart';
 
 interface AuthState {
     user: User | null;
@@ -32,13 +33,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             throw error;
         }
 
-        // Merge guest cart if checkAuth logic handles it or we do it here
-        // For now, simple state update
         if (data) {
-            // We need to fetch full profile or trust session data
-            // session.user might simpler than full User type
-            // Let's rely on checkAuth to normalize the user state
+            // Fetch user data
             await get().checkAuth();
+
+            // Merge guest cart into customer cart after successful login
+            await useCartStore.getState().mergeAndFetch();
         }
     },
 
@@ -56,7 +56,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         if (data) {
+            // Fetch user data
             await get().checkAuth();
+
+            // Merge guest cart into customer cart after successful registration
+            await useCartStore.getState().mergeAndFetch();
         }
     },
 

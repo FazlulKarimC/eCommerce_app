@@ -168,6 +168,23 @@ router.post(
             const cart = await cartService.mergeCart(sessionId, req.user.userId);
             res.json(cart);
         } catch (error) {
+            // Log the error for debugging
+            console.error('[CART MERGE ERROR]', error);
+
+            // Handle specific errors
+            if (error instanceof Error) {
+                if (error.message.includes('not found')) {
+                    // Cart not found - return fresh customer cart instead
+                    try {
+                        const cart = await cartService.getOrCreateCart(req.user!.userId);
+                        res.json(cart);
+                        return;
+                    } catch (fallbackError) {
+                        next(fallbackError);
+                        return;
+                    }
+                }
+            }
             next(error);
         }
     }

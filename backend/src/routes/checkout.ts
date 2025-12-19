@@ -55,14 +55,24 @@ router.post(
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             const sessionId = req.headers['x-session-id'] as string;
-            const customerId = req.user?.userId;
+            const userId = req.user?.userId;
 
             // Get cart
-            const cart = await cartService.getOrCreateCart(customerId, sessionId);
+            const cart = await cartService.getOrCreateCart(userId, sessionId);
 
             if (cart.items.length === 0) {
                 res.status(400).json({ error: 'Cart is empty' });
                 return;
+            }
+
+            // Resolve Customer ID from User ID (Order's FK is to Customer, not User)
+            let customerId: string | undefined;
+            if (userId) {
+                let customer = await prisma.customer.findUnique({ where: { userId } });
+                if (!customer) {
+                    customer = await prisma.customer.create({ data: { userId } });
+                }
+                customerId = customer.id;
             }
 
             // Process checkout

@@ -76,9 +76,11 @@ export default function CheckoutPage() {
   });
 
   // Fetch checkout preview on mount and when discount changes
+  const userId = user?.id;
   useEffect(() => {
     const fetchPreview = async () => {
-      if (!cart || cart.items.length === 0) return;
+      // Only fetch preview if user is logged in and has items in cart
+      if (!userId || !cart || cart.items.length === 0) return;
 
       setIsLoadingPreview(true);
       try {
@@ -94,7 +96,7 @@ export default function CheckoutPage() {
     };
 
     fetchPreview();
-  }, [cart, appliedDiscount]);
+  }, [userId, cart, appliedDiscount]);
 
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) return;
@@ -137,6 +139,34 @@ export default function CheckoutPage() {
           <Button asChild size="lg">
             <Link href="/products">Start Shopping</Link>
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Prompt user to login if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center py-20">
+        <div className="text-center max-w-md">
+          <div className="w-24 h-24 mx-auto mb-6 bg-primary border-4 border-black rounded-xl shadow-[6px_6px_0px_#000] flex items-center justify-center">
+            <CreditCard className="w-12 h-12 text-white" />
+          </div>
+          <h1 className="text-4xl font-black mb-4">Login Required</h1>
+          <p className="text-gray-600 mb-8">
+            Please log in to your account to continue with the checkout process. This helps us save your order history and shipping details.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg">
+              <Link href="/auth/login?redirect=/checkout">Login to Continue</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/auth/register?redirect=/checkout">Create Account</Link>
+            </Button>
+          </div>
+          <p className="text-sm text-gray-500 mt-6">
+            Your cart items are saved and will be here when you return.
+          </p>
         </div>
       </div>
     );

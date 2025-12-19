@@ -70,22 +70,22 @@ export default function ContactPage() {
                                 {
                                     icon: Mail,
                                     title: 'Email Us',
-                                    content: 'hello@brutal.store',
+                                    content: 'fazlul0127@gmail.com',
                                     subtext: 'We reply within 24 hours',
                                     color: 'bg-red-500',
                                 },
                                 {
                                     icon: Phone,
                                     title: 'Call Us',
-                                    content: '+1 (555) 123-4567',
-                                    subtext: 'Mon-Fri, 9am-6pm EST',
+                                    content: '+91 8486853823',
+                                    subtext: 'Mon-Fri, 9am-6pm IST',
                                     color: 'bg-yellow-400 text-black',
                                 },
                                 {
                                     icon: MapPin,
                                     title: 'Visit Us',
-                                    content: '123 Bold Street',
-                                    subtext: 'New York, NY 10001',
+                                    content: 'BTM Layout, Bangalore',
+                                    subtext: 'Karnataka',
                                     color: 'bg-black',
                                 },
                             ].map((item) => (

@@ -46,6 +46,7 @@ interface CartState {
     updateItemQuantity: (itemId: string, quantity: number) => Promise<void>;
     removeItem: (itemId: string) => Promise<void>;
     clearCart: () => Promise<void>;
+    mergeAndFetch: () => Promise<void>;
     setIsOpen: (isOpen: boolean) => void;
     closeCart: () => void;
     toggleCart: () => void;
@@ -171,6 +172,36 @@ export const useCartStore = create<CartState>()(
                     set({ cart: response.data });
                 } catch (error) {
                     console.error('Failed to clear cart:', error);
+                }
+            },
+
+            mergeAndFetch: async () => {
+                set({ isLoading: true });
+                try {
+                    // Get the session ID that was used for guest cart
+                    const sessionId = localStorage.getItem('sessionId');
+
+                    if (sessionId) {
+                        // Merge guest cart into customer cart
+                        const response = await api.post('/cart/merge', { sessionId });
+                        set({ cart: response.data, isLoading: false });
+
+                        // Clear sessionId since we're now authenticated
+                        localStorage.removeItem('sessionId');
+                    } else {
+                        // No guest cart to merge, just fetch the customer cart
+                        const response = await api.get('/cart');
+                        set({ cart: response.data, isLoading: false });
+                    }
+                } catch (error) {
+                    console.error('Failed to merge/fetch cart:', error);
+                    // Fallback to regular fetch
+                    try {
+                        const response = await api.get('/cart');
+                        set({ cart: response.data, isLoading: false });
+                    } catch (err) {
+                        set({ isLoading: false });
+                    }
                 }
             },
 

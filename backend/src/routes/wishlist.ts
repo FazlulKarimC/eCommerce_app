@@ -37,7 +37,7 @@ router.get(
                 where: { id: { in: productIds }, status: 'ACTIVE', deletedAt: null },
                 include: {
                     variants: { take: 1, orderBy: { position: 'asc' } },
-                    images: { take: 1, orderBy: { position: 'asc' } },
+                    images: { where: { deletedAt: null }, take: 1, orderBy: { position: 'asc' } },
                 },
             });
 

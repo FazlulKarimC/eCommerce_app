@@ -259,20 +259,25 @@ model VariantOptionValue {
 }
 
 model ProductImage {
-  id        String  @id @default(cuid())
+  id        String    @id @default(cuid())
   productId String
   variantId String?
   url       String
   alt       String?
-  position  Int     @default(0)
+  position  Int       @default(0)
   width     Int?
   height    Int?
+  mimeType  String?   // image/jpeg, image/webp, etc.
+  size      Int?      // File size in bytes
+  createdAt DateTime  @default(now())
+  deletedAt DateTime? // Soft delete
 
   product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
   @@index([productId])
   @@index([variantId])
+  @@index([deletedAt])
 }
 
 // ============ CATEGORIES & COLLECTIONS ============

@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
@@ -59,14 +60,16 @@ export function BrandStory() {
               that demand attention. This is more than fashion—it's a movement.
             </p>
 
-            <Button
-              size="lg"
-              variant="outline"
-              className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all rounded-xl"
-            >
-              LEARN MORE
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/about">
+              <Button
+                size="lg"
+                variant="outline"
+                className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all rounded-xl"
+              >
+                LEARN MORE
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

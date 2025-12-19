@@ -341,7 +341,7 @@ export class CartService {
                         include: {
                             product: {
                                 include: {
-                                    images: { take: 1, orderBy: { position: 'asc' as const } },
+                                    images: { where: { deletedAt: null }, take: 1, orderBy: { position: 'asc' as const } },
                                 },
                             },
                             optionValues: {
