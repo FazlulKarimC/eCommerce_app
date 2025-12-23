@@ -13,16 +13,17 @@ import {
     Clock,
 } from 'lucide-react';
 import api from '@/lib/api';
-import { formatPrice, cn } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
+import { Card, CardContent, Button, Badge, Input } from '@/components/ui';
 
-const statusColors: Record<string, string> = {
-    PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    CONFIRMED: 'bg-blue-100 text-blue-800 border-blue-300',
-    PROCESSING: 'bg-blue-100 text-blue-800 border-blue-300',
-    SHIPPED: 'bg-purple-100 text-purple-800 border-purple-300',
-    DELIVERED: 'bg-green-100 text-green-800 border-green-300',
-    CANCELLED: 'bg-red-100 text-red-800 border-red-300',
-    REFUNDED: 'bg-gray-100 text-gray-800 border-gray-300',
+const statusBadgeVariant: Record<string, 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'> = {
+    PENDING: 'pending',
+    CONFIRMED: 'confirmed',
+    PROCESSING: 'processing',
+    SHIPPED: 'shipped',
+    DELIVERED: 'delivered',
+    CANCELLED: 'cancelled',
+    REFUNDED: 'refunded',
 };
 
 export default function AdminOrdersPage() {
@@ -52,64 +53,66 @@ export default function AdminOrdersPage() {
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-black">Orders</h1>
-                <p className="text-[var(--brutal-gray-600)]">
+                <p className="text-gray-600">
                     {pagination.total} orders total
                 </p>
             </div>
 
             {/* Filters */}
-            <div className="brutal-card p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--brutal-gray-400)]" />
-                        <input
-                            type="text"
-                            placeholder="Search by order # or email..."
-                            value={search}
+            <Card shadow="md">
+                <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <Input
+                                type="text"
+                                placeholder="Search by order # or email..."
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="pl-12"
+                            />
+                        </div>
+                        <select
+                            value={status}
                             onChange={(e) => {
-                                setSearch(e.target.value);
+                                setStatus(e.target.value);
                                 setPage(1);
                             }}
-                            className="brutal-input pl-10"
-                        />
+                            className="w-full sm:w-44 h-12 px-4 bg-white border-4 border-black rounded-xl font-medium focus:outline-none shadow-[4px_4px_0px_#000]"
+                        >
+                            <option value="">All Status</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="CONFIRMED">Confirmed</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="SHIPPED">Shipped</option>
+                            <option value="DELIVERED">Delivered</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
                     </div>
-                    <select
-                        value={status}
-                        onChange={(e) => {
-                            setStatus(e.target.value);
-                            setPage(1);
-                        }}
-                        className="brutal-input w-full sm:w-44"
-                    >
-                        <option value="">All Status</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="CONFIRMED">Confirmed</option>
-                        <option value="PROCESSING">Processing</option>
-                        <option value="SHIPPED">Shipped</option>
-                        <option value="DELIVERED">Delivered</option>
-                        <option value="CANCELLED">Cancelled</option>
-                    </select>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Orders Table */}
-            <div className="brutal-card overflow-hidden">
+            <Card shadow="md">
                 {isLoading ? (
-                    <div className="p-12 text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-[var(--brutal-gray-400)]" />
-                    </div>
+                    <CardContent className="p-12 text-center">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+                    </CardContent>
                 ) : orders.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <ShoppingCart className="w-12 h-12 mx-auto text-[var(--brutal-gray-300)] mb-4" />
+                    <CardContent className="p-12 text-center">
+                        <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                         <h3 className="font-black">No orders found</h3>
-                        <p className="text-[var(--brutal-gray-600)] mt-1">
+                        <p className="text-gray-600 mt-1">
                             {search || status ? 'Try adjusting your filters' : 'Orders will appear here'}
                         </p>
-                    </div>
+                    </CardContent>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-[var(--brutal-gray-100)] border-b-2 border-[var(--brutal-black)]">
+                            <thead className="bg-gray-100 border-b-4 border-black">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-black uppercase">
                                         Order
@@ -134,13 +137,13 @@ export default function AdminOrdersPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--brutal-gray-200)]">
+                            <tbody className="divide-y-4 divide-black">
                                 {orders.map((order: any) => (
-                                    <tr key={order.id} className="hover:bg-[var(--brutal-gray-50)]">
+                                    <tr key={order.id} className="hover:bg-yellow-50">
                                         <td className="px-6 py-4">
                                             <Link
                                                 href={`/admin/orders/${order.id}`}
-                                                className="font-bold hover:text-[var(--brutal-red)]"
+                                                className="font-bold hover:text-red-500"
                                             >
                                                 #{order.orderNumber}
                                             </Link>
@@ -148,7 +151,7 @@ export default function AdminOrdersPage() {
                                         <td className="px-6 py-4 text-sm">
                                             <div>{order.email}</div>
                                             {order.phone && (
-                                                <div className="text-[var(--brutal-gray-500)]">{order.phone}</div>
+                                                <div className="text-gray-500">{order.phone}</div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
@@ -158,14 +161,11 @@ export default function AdminOrdersPage() {
                                             {formatPrice(order.total)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={cn(
-                                                'px-2 py-1 text-xs font-bold rounded border',
-                                                statusColors[order.status] || 'bg-gray-100'
-                                            )}>
+                                            <Badge variant={statusBadgeVariant[order.status] || 'pending'} size="sm">
                                                 {order.status}
-                                            </span>
+                                            </Badge>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-[var(--brutal-gray-600)]">
+                                        <td className="px-6 py-4 text-sm text-gray-600">
                                             <div className="flex items-center gap-1">
                                                 <Clock className="w-3 h-3" />
                                                 {new Date(order.createdAt).toLocaleDateString()}
@@ -175,7 +175,7 @@ export default function AdminOrdersPage() {
                                             <div className="flex items-center justify-end">
                                                 <Link
                                                     href={`/admin/orders/${order.id}`}
-                                                    className="p-2 hover:bg-[var(--brutal-gray-100)] rounded"
+                                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                                     title="View Details"
                                                 >
                                                     <Eye className="w-4 h-4" />
@@ -191,29 +191,31 @@ export default function AdminOrdersPage() {
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                    <div className="p-4 border-t-2 border-[var(--brutal-gray-200)] flex items-center justify-between">
-                        <p className="text-sm text-[var(--brutal-gray-600)]">
+                    <div className="p-4 border-t-4 border-black flex items-center justify-between">
+                        <p className="text-sm text-gray-600">
                             Page {pagination.page} of {pagination.totalPages}
                         </p>
                         <div className="flex gap-2">
-                            <button
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setPage(page - 1)}
                                 disabled={page <= 1}
-                                className="brutal-btn text-sm disabled:opacity-50"
                             >
                                 <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setPage(page + 1)}
                                 disabled={page >= pagination.totalPages}
-                                className="brutal-btn text-sm disabled:opacity-50"
                             >
                                 <ChevronRight className="w-4 h-4" />
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import api from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui';
 
 const discountSchema = z.object({
     code: z.string().min(1, 'Code is required').max(50),
@@ -67,7 +68,7 @@ export default function NewDiscountPage() {
             <div className="mb-8">
                 <Link
                     href="/admin/discounts"
-                    className="inline-flex items-center gap-2 text-(--brutal-gray-600) hover:text-(--brutal-black) mb-4"
+                    className="inline-flex items-center gap-2 text-gray-600 hover:text-black mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Discounts
@@ -77,131 +78,133 @@ export default function NewDiscountPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-(--brutal-red) text-white p-4 border-2 border-(--brutal-black)">
+                    <div className="bg-red-500 text-white p-4 border-4 border-black rounded-xl">
                         {error}
                     </div>
                 )}
 
                 {/* Basic Info */}
-                <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
-                        Discount Details
-                    </h2>
-
-                    <div>
-                        <label className="block font-bold text-sm mb-2">Discount Code *</label>
-                        <input
-                            {...register('code')}
-                            className="brutal-input font-mono uppercase"
-                            placeholder="SAVE20"
-                        />
-                        {errors.code && (
-                            <p className="text-(--brutal-red) text-sm mt-1">{errors.code.message}</p>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card shadow="md">
+                    <CardHeader>
+                        <CardTitle>Discount Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         <div>
-                            <label className="block font-bold text-sm mb-2">Discount Type *</label>
-                            <select {...register('type')} className="brutal-input">
-                                <option value="PERCENTAGE">Percentage</option>
-                                <option value="FIXED_AMOUNT">Fixed Amount</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block font-bold text-sm mb-2">
-                                Value * {discountType === 'PERCENTAGE' ? '(%)' : '($)'}
-                            </label>
-                            <input
-                                {...register('value', { valueAsNumber: true })}
-                                type="number"
-                                step={discountType === 'PERCENTAGE' ? '1' : '0.01'}
-                                className="brutal-input"
-                                placeholder={discountType === 'PERCENTAGE' ? '10' : '5.00'}
+                            <label className="block font-bold text-sm mb-2">Discount Code *</label>
+                            <Input
+                                {...register('code')}
+                                className="font-mono uppercase"
+                                placeholder="SAVE20"
                             />
-                            {errors.value && (
-                                <p className="text-(--brutal-red) text-sm mt-1">{errors.value.message}</p>
+                            {errors.code && (
+                                <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>
                             )}
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="block font-bold text-sm mb-2">Minimum Purchase ($)</label>
-                        <input
-                            {...register('minPurchase', { valueAsNumber: true })}
-                            type="number"
-                            step="0.01"
-                            className="brutal-input"
-                            placeholder="0.00"
-                        />
-                        <p className="text-sm text-(--brutal-gray-600) mt-1">
-                            Leave empty for no minimum
-                        </p>
-                    </div>
-                </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block font-bold text-sm mb-2">Discount Type *</label>
+                                <select
+                                    {...register('type')}
+                                    className="w-full h-12 px-4 bg-white border-4 border-black rounded-xl font-medium focus:outline-none shadow-[4px_4px_0px_#000]"
+                                >
+                                    <option value="PERCENTAGE">Percentage</option>
+                                    <option value="FIXED_AMOUNT">Fixed Amount</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-sm mb-2">
+                                    Value * {discountType === 'PERCENTAGE' ? '(%)' : '($)'}
+                                </label>
+                                <Input
+                                    {...register('value', { valueAsNumber: true })}
+                                    type="number"
+                                    step={discountType === 'PERCENTAGE' ? '1' : '0.01'}
+                                    placeholder={discountType === 'PERCENTAGE' ? '10' : '5.00'}
+                                />
+                                {errors.value && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.value.message}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block font-bold text-sm mb-2">Minimum Purchase ($)</label>
+                            <Input
+                                {...register('minPurchase', { valueAsNumber: true })}
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                            />
+                            <p className="text-sm text-gray-600 mt-1">
+                                Leave empty for no minimum
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Limits */}
-                <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
-                        Usage Limits
-                    </h2>
-
-                    <div>
-                        <label className="block font-bold text-sm mb-2">Maximum Uses</label>
-                        <input
-                            {...register('maxUses', { valueAsNumber: true })}
-                            type="number"
-                            className="brutal-input"
-                            placeholder="Unlimited"
-                        />
-                        <p className="text-sm text-(--brutal-gray-600) mt-1">
-                            Leave empty for unlimited uses
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card shadow="md">
+                    <CardHeader>
+                        <CardTitle>Usage Limits</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         <div>
-                            <label className="block font-bold text-sm mb-2">Start Date</label>
-                            <input
-                                {...register('startDate')}
-                                type="datetime-local"
-                                className="brutal-input"
+                            <label className="block font-bold text-sm mb-2">Maximum Uses</label>
+                            <Input
+                                {...register('maxUses', { valueAsNumber: true })}
+                                type="number"
+                                placeholder="Unlimited"
                             />
+                            <p className="text-sm text-gray-600 mt-1">
+                                Leave empty for unlimited uses
+                            </p>
                         </div>
 
-                        <div>
-                            <label className="block font-bold text-sm mb-2">End Date</label>
-                            <input
-                                {...register('endDate')}
-                                type="datetime-local"
-                                className="brutal-input"
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block font-bold text-sm mb-2">Start Date</label>
+                                <Input
+                                    {...register('startDate')}
+                                    type="datetime-local"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-sm mb-2">End Date</label>
+                                <Input
+                                    {...register('endDate')}
+                                    type="datetime-local"
+                                />
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 {/* Status */}
-                <div className="brutal-card p-6">
-                    <div className="flex items-center gap-3">
-                        <input
-                            {...register('isActive')}
-                            type="checkbox"
-                            id="isActive"
-                            className="w-5 h-5 border-2 border-(--brutal-black)"
-                        />
-                        <label htmlFor="isActive" className="font-bold">
-                            Active (customers can use this code)
-                        </label>
-                    </div>
-                </div>
+                <Card shadow="md">
+                    <CardContent>
+                        <div className="flex items-center gap-3">
+                            <input
+                                {...register('isActive')}
+                                type="checkbox"
+                                id="isActive"
+                                className="w-6 h-6 border-4 border-black rounded accent-yellow-400"
+                            />
+                            <label htmlFor="isActive" className="font-bold">
+                                Active (customers can use this code)
+                            </label>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Actions */}
                 <div className="flex gap-4">
-                    <button
+                    <Button
                         type="submit"
                         disabled={createDiscount.isPending}
-                        className="brutal-btn brutal-btn-primary flex-1"
+                        className="flex-1"
                     >
                         {createDiscount.isPending ? (
                             <>
@@ -214,10 +217,10 @@ export default function NewDiscountPage() {
                                 Create Discount
                             </>
                         )}
-                    </button>
-                    <Link href="/admin/discounts" className="brutal-btn">
-                        Cancel
-                    </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link href="/admin/discounts">Cancel</Link>
+                    </Button>
                 </div>
             </form>
         </div>

@@ -120,7 +120,7 @@ export default function ThankYouPage({ params }: { params: Promise<{ orderNumber
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/orders">View Orders</Link>
+            <Link href="/account/orders">View Orders</Link>
           </Button>
         </div>
       </div>

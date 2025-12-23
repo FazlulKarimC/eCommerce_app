@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ShoppingBag, Menu, Search, User, X } from "lucide-react"
+import { ShoppingBag, Menu, Search, User, X, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/lib/cart"
 import { useAuthStore } from "@/lib/auth"
@@ -11,7 +11,7 @@ import { useAuthStore } from "@/lib/auth"
 export function SiteHeader() {
   const router = useRouter()
   const { cart, toggleCart } = useCartStore()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -145,6 +145,19 @@ export function SiteHeader() {
                   <User className="h-5 w-5" />
                 </Button>
               </Link>
+              {/* Admin Panel Button - Only for Admin/Staff */}
+              {isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'STAFF') && (
+                <Link href="/admin">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
+                    title="Admin Panel"
+                  >
+                    <Shield className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
               <Button
                 variant="default"
                 size="icon"
@@ -210,7 +223,18 @@ export function SiteHeader() {
             </nav>
 
             {/* Menu Footer */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t-4 border-black bg-[#FACC15]">
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t-4 border-black bg-[#FACC15] space-y-2">
+              {/* Admin Panel Link - Only for Admin/Staff */}
+              {isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'STAFF') && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 font-bold text-lg uppercase tracking-wide bg-red-500 text-white border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                >
+                  <Shield className="h-5 w-5" />
+                  Admin Panel
+                </Link>
+              )}
               <Link
                 href={isAuthenticated ? "/account" : "/auth/login"}
                 onClick={() => setIsMobileMenuOpen(false)}

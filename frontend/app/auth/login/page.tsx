@@ -33,6 +33,10 @@ function LoginForm() {
         formState: { errors },
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: 'customer@brutal.com',
+            password: 'Customer123!',
+        },
     });
 
     const onSubmit = async (data: LoginFormData) => {
@@ -163,11 +167,12 @@ export default function LoginPage() {
                 {/* Test Account Info */}
                 <Card shadow="sm" className="mt-6 bg-yellow-100">
                     <CardContent className="p-4">
-                        <p className="text-sm font-bold mb-2">Test Account:</p>
-                        <p className="text-sm text-gray-700">
-                            Email: customer@example.com<br />
-                            Password: Customer123!
-                        </p>
+                        <p className="text-sm font-bold mb-2">Test Accounts:</p>
+                        <div className="text-sm text-gray-700 space-y-1">
+                            <p><strong>Admin:</strong> admin@brutal.com / Admin123!</p>
+                            <p><strong>Staff:</strong> staff@brutal.com / Staff123!</p>
+                            <p><strong>Customer:</strong> customer@brutal.com / Customer123!</p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

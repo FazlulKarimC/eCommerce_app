@@ -183,7 +183,7 @@ async function main() {
     const adminPassword = await bcrypt.hash('Admin123!', 12);
     const admin = await prisma.user.create({
         data: {
-            email: 'admin@brutaliststore.com',
+            email: 'admin@brutal.com',
             passwordHash: adminPassword,
             name: 'Admin User',
             role: UserRole.ADMIN,
@@ -202,7 +202,7 @@ async function main() {
     const staffPassword = await bcrypt.hash('Staff123!', 12);
     const staff = await prisma.user.create({
         data: {
-            email: 'staff@brutaliststore.com',
+            email: 'staff@brutal.com',
             passwordHash: staffPassword,
             name: 'Staff User',
             role: UserRole.STAFF,
@@ -221,7 +221,7 @@ async function main() {
     const customerPassword = await bcrypt.hash('Customer123!', 12);
     const customerUser = await prisma.user.create({
         data: {
-            email: 'customer@example.com',
+            email: 'customer@brutal.com',
             passwordHash: customerPassword,
             name: 'Jane Doe',
             role: UserRole.CUSTOMER,
@@ -1136,9 +1136,9 @@ async function main() {
 ✅ Database seeded successfully!
 
 Test accounts:
-- Admin: admin@brutaliststore.com / Admin123!
-- Staff: staff@brutaliststore.com / Staff123!
-- Customer: customer@example.com / Customer123!
+- Admin: admin@brutal.com / Admin123!
+- Staff: staff@brutal.com / Staff123!
+- Customer: customer@brutal.com / Customer123!
 
 Products: ${createdProducts.length} products created
 Reviews: ${reviewCount} reviews created

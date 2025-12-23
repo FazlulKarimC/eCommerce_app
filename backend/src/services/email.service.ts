@@ -7,6 +7,25 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const STORE_NAME = process.env.STORE_NAME || 'Our Store';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@resend.dev'; // Use resend.dev for testing
 
+// In development/testing with Resend free tier, all emails must go to your verified email
+// Set this to your Resend-verified email address
+const DEV_EMAIL_OVERRIDE = process.env.DEV_EMAIL_OVERRIDE || 'fazlul0127@gmail.com';
+
+// TODO: When you verify a domain with Resend and want emails to go to actual customers:
+// 1. Verify your domain at https://resend.com/domains
+// 2. Change FROM_EMAIL to use your verified domain (e.g., 'noreply@yourdomain.com')
+// 3. Set ENABLE_REAL_EMAILS to true below
+const ENABLE_REAL_EMAILS = false; // Set to true after verifying domain with Resend
+
+// Helper to get the actual recipient (overrides to your email when ENABLE_REAL_EMAILS is false)
+function getRecipientEmail(originalEmail: string): string {
+  if (ENABLE_REAL_EMAILS) {
+    return originalEmail;
+  }
+  console.log(`[EMAIL] Redirecting email from ${originalEmail} to ${DEV_EMAIL_OVERRIDE}`);
+  return DEV_EMAIL_OVERRIDE;
+}
+
 interface OrderEmailData {
   orderNumber: string;
   email: string;
@@ -218,7 +237,7 @@ export async function sendOrderConfirmation(data: OrderEmailData): Promise<boole
   try {
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: data.email,
+      to: getRecipientEmail(data.email),
       subject: `Order Confirmed - #${data.orderNumber}`,
       html,
     });
@@ -323,7 +342,7 @@ export async function sendShippingNotification(data: ShippingEmailData): Promise
   try {
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: data.email,
+      to: getRecipientEmail(data.email),
       subject: `Your Order Has Shipped - #${data.orderNumber}`,
       html,
     });
@@ -436,7 +455,7 @@ ${escapeHtml(data.message)}
   try {
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: CONTACT_EMAIL,
+      to: getRecipientEmail(CONTACT_EMAIL),
       replyTo: data.email,
       subject: `[Contact] ${subjectLabel} from ${data.name}`,
       html,

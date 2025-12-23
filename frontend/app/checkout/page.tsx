@@ -342,6 +342,13 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
+              {/* Error message near payment button for visibility */}
+              {error && (
+                <div className="bg-red-500 text-white p-4 border-4 border-black rounded-xl flex items-center gap-2">
+                  <span className="font-bold">Payment Failed:</span> {error}
+                </div>
+              )}
+
               <Button
                 type="submit"
                 disabled={isSubmitting}

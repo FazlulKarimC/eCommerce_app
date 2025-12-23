@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Loader2, Save, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '@/components/ui';
 
 const productSchema = z.object({
     title: z.string().min(1, 'Title is required'),
@@ -16,6 +18,8 @@ const productSchema = z.object({
     shortDescription: z.string().optional().nullable(),
     status: z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']),
     featured: z.boolean(),
+    seoTitle: z.string().optional().nullable(),
+    seoDescription: z.string().optional().nullable(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -49,6 +53,8 @@ export default function EditProductPage() {
                 shortDescription: product.shortDescription,
                 status: product.status,
                 featured: product.featured,
+                seoTitle: product.seoTitle,
+                seoDescription: product.seoDescription,
             }
             : undefined,
     });
@@ -95,7 +101,7 @@ export default function EditProductPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-(--brutal-gray-400)" />
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
             </div>
         );
     }
@@ -104,10 +110,12 @@ export default function EditProductPage() {
         return (
             <div className="text-center py-12">
                 <h2 className="text-2xl font-black">Product not found</h2>
-                <Link href="/admin/products" className="brutal-btn mt-4 inline-flex">
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Products
-                </Link>
+                <Button variant="outline" asChild className="mt-4">
+                    <Link href="/admin/products">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Products
+                    </Link>
+                </Button>
             </div>
         );
     }
@@ -118,133 +126,217 @@ export default function EditProductPage() {
             <div className="mb-8">
                 <Link
                     href="/admin/products"
-                    className="inline-flex items-center gap-2 text-(--brutal-gray-600) hover:text-(--brutal-black) mb-4"
+                    className="inline-flex items-center gap-2 text-gray-600 hover:text-black mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Products
                 </Link>
                 <div className="flex items-start justify-between">
                     <h1 className="text-3xl font-black">Edit Product</h1>
-                    <button
+                    <Button
+                        variant="destructive"
                         onClick={handleDelete}
                         disabled={deleteProduct.isPending}
-                        className="brutal-btn text-(--brutal-red) hover:bg-(--brutal-red) hover:text-white"
                     >
                         <Trash2 className="w-4 h-4" />
                         Delete
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-(--brutal-red) text-white p-4 border-2 border-(--brutal-black)">
+                    <div className="bg-red-500 text-white p-4 border-4 border-black rounded-xl">
                         {error}
                     </div>
                 )}
 
                 {updateProduct.isSuccess && (
-                    <div className="bg-(--brutal-green) text-white p-4 border-2 border-(--brutal-black)">
+                    <div className="bg-green-500 text-white p-4 border-4 border-black rounded-xl">
                         Product updated successfully!
                     </div>
                 )}
 
                 {/* Basic Info */}
-                <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
-                        Basic Information
-                    </h2>
+                <Card shadow="md">
+                    <CardHeader>
+                        <CardTitle>Basic Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <label className="block font-bold text-sm mb-2">Title *</label>
+                            <Input
+                                {...register('title')}
+                                placeholder="Product title"
+                            />
+                            {errors.title && (
+                                <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                            )}
+                        </div>
 
-                    <div>
-                        <label className="block font-bold text-sm mb-2">Title *</label>
-                        <input
-                            {...register('title')}
-                            className="brutal-input"
-                            placeholder="Product title"
-                        />
-                        {errors.title && (
-                            <p className="text-(--brutal-red) text-sm mt-1">{errors.title.message}</p>
-                        )}
-                    </div>
+                        <div>
+                            <label className="block font-bold text-sm mb-2">Description *</label>
+                            <Textarea
+                                {...register('description')}
+                                className="min-h-[150px]"
+                                placeholder="Product description"
+                            />
+                            {errors.description && (
+                                <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                            )}
+                        </div>
 
-                    <div>
-                        <label className="block font-bold text-sm mb-2">Description *</label>
-                        <textarea
-                            {...register('description')}
-                            className="brutal-input min-h-[150px]"
-                            placeholder="Product description"
-                        />
-                        {errors.description && (
-                            <p className="text-(--brutal-red) text-sm mt-1">{errors.description.message}</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block font-bold text-sm mb-2">Short Description</label>
-                        <input
-                            {...register('shortDescription')}
-                            className="brutal-input"
-                            placeholder="Brief description for cards"
-                        />
-                    </div>
-                </div>
+                        <div>
+                            <label className="block font-bold text-sm mb-2">Short Description</label>
+                            <Input
+                                {...register('shortDescription')}
+                                placeholder="Brief description for cards"
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Status */}
-                <div className="brutal-card p-6 space-y-4">
-                    <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
-                        Status & Visibility
-                    </h2>
+                <Card shadow="md">
+                    <CardHeader>
+                        <CardTitle>Status & Visibility</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block font-bold text-sm mb-2">Status</label>
+                                <select
+                                    {...register('status')}
+                                    className="w-full h-12 px-4 bg-white border-4 border-black rounded-xl font-medium focus:outline-none shadow-[4px_4px_0px_#000]"
+                                >
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="ARCHIVED">Archived</option>
+                                </select>
+                            </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3 pt-6">
+                                <input
+                                    {...register('featured')}
+                                    type="checkbox"
+                                    id="featured"
+                                    className="w-6 h-6 border-4 border-black rounded accent-yellow-400"
+                                />
+                                <label htmlFor="featured" className="font-bold">
+                                    Featured Product
+                                </label>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Product Images */}
+                {product.images && product.images.length > 0 && (
+                    <Card shadow="md">
+                        <CardHeader>
+                            <CardTitle>Images ({product.images.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {product.images.map((img: any, index: number) => {
+                                    // Validate URL - only allow http/https
+                                    let isValidUrl = false;
+                                    try {
+                                        const url = new URL(img.url);
+                                        isValidUrl = url.protocol === 'http:' || url.protocol === 'https:';
+                                    } catch {
+                                        isValidUrl = false;
+                                    }
+
+                                    return (
+                                        <div
+                                            key={img.id || index}
+                                            className="relative aspect-square bg-gray-100 border-4 border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_#000]"
+                                        >
+                                            {isValidUrl ? (
+                                                <Image
+                                                    src={img.url}
+                                                    alt={img.alt || `Product image ${index + 1}`}
+                                                    fill
+                                                    className="object-cover"
+                                                    unoptimized
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                    Invalid URL
+                                                </div>
+                                            )}
+                                            {index === 0 && (
+                                                <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 border-2 border-black rounded">
+                                                    Main
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-sm text-gray-500 mt-4">
+                                Note: Image management is currently available via the product creation API.
+                                Images can be added by including them in the product payload during creation.
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* SEO Settings */}
+                <Card shadow="md">
+                    <CardHeader>
+                        <CardTitle>SEO</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         <div>
-                            <label className="block font-bold text-sm mb-2">Status</label>
-                            <select {...register('status')} className="brutal-input">
-                                <option value="DRAFT">Draft</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="ARCHIVED">Archived</option>
-                            </select>
+                            <label className="block font-bold text-sm mb-2">Meta Title</label>
+                            <Input
+                                {...register('seoTitle')}
+                                placeholder="Custom title for search engines"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Leave empty to use product title</p>
                         </div>
 
-                        <div className="flex items-center gap-3 pt-6">
-                            <input
-                                {...register('featured')}
-                                type="checkbox"
-                                id="featured"
-                                className="w-5 h-5 border-2 border-(--brutal-black)"
+                        <div>
+                            <label className="block font-bold text-sm mb-2">Meta Description</label>
+                            <Textarea
+                                {...register('seoDescription')}
+                                rows={2}
+                                placeholder="Description for search engines (150-160 characters ideal)"
                             />
-                            <label htmlFor="featured" className="font-bold">
-                                Featured Product
-                            </label>
                         </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 {/* Variants Info (Read-only) */}
                 {product.variants && product.variants.length > 0 && (
-                    <div className="brutal-card p-6">
-                        <h2 className="font-black text-lg border-b-2 border-(--brutal-gray-200) pb-2 mb-4">
-                            Variants ({product.variants.length})
-                        </h2>
-                        <div className="space-y-2">
-                            {product.variants.map((v: any) => (
-                                <div key={v.id} className="flex items-center justify-between p-3 bg-(--brutal-gray-100)">
-                                    <span className="font-bold">{v.title}</span>
-                                    <div className="flex gap-4 text-sm">
-                                        <span>${v.price}</span>
-                                        <span>Stock: {v.inventoryQty}</span>
+                    <Card shadow="md">
+                        <CardHeader>
+                            <CardTitle>Variants ({product.variants.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {product.variants.map((v: any) => (
+                                    <div key={v.id} className="flex items-center justify-between p-3 bg-gray-100 rounded-lg border-2 border-black">
+                                        <span className="font-bold">{v.title}</span>
+                                        <div className="flex gap-4 text-sm">
+                                            <span>${v.price}</span>
+                                            <span>Stock: {v.inventoryQty}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
 
                 {/* Actions */}
                 <div className="flex gap-4">
-                    <button
+                    <Button
                         type="submit"
                         disabled={updateProduct.isPending}
-                        className="brutal-btn brutal-btn-primary flex-1"
+                        className="flex-1"
                     >
                         {updateProduct.isPending ? (
                             <>
@@ -257,10 +349,10 @@ export default function EditProductPage() {
                                 Save Changes
                             </>
                         )}
-                    </button>
-                    <Link href="/admin/products" className="brutal-btn">
-                        Cancel
-                    </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link href="/admin/products">Cancel</Link>
+                    </Button>
                 </div>
             </form>
         </div>

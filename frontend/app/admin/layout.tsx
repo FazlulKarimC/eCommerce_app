@@ -55,7 +55,7 @@ export default function AdminLayout({
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--brutal-gray-100)] flex items-center justify-center">
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
                 <div className="animate-pulse text-2xl font-black">Loading...</div>
             </div>
         );
@@ -66,9 +66,9 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[var(--brutal-gray-100)]">
+        <div className="min-h-screen bg-neutral-50">
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[var(--brutal-black)] text-white z-50 flex items-center justify-between px-4 border-b-4 border-[var(--brutal-yellow)]">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black text-white z-50 flex items-center justify-between px-4 border-b-4 border-yellow-400">
                 <button onClick={() => setSidebarOpen(true)} className="p-2">
                     <Menu className="w-6 h-6" />
                 </button>
@@ -87,14 +87,14 @@ export default function AdminLayout({
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'fixed top-0 left-0 bottom-0 w-64 bg-[var(--brutal-black)] text-white z-50 transition-transform lg:translate-x-0',
+                    'fixed top-0 left-0 bottom-0 w-64 bg-black text-white z-50 transition-transform lg:translate-x-0',
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
                 {/* Logo */}
-                <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--brutal-gray-700)]">
+                <div className="h-16 flex items-center justify-between px-4 border-b border-gray-700">
                     <Link href="/admin" className="flex items-center gap-2">
-                        <Store className="w-6 h-6 text-[var(--brutal-yellow)]" />
+                        <Store className="w-6 h-6 text-yellow-400" />
                         <span className="font-black text-lg">BRUTALIST</span>
                     </Link>
                     <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2">
@@ -116,10 +116,10 @@ export default function AdminLayout({
                                 href={item.href}
                                 onClick={() => setSidebarOpen(false)}
                                 className={cn(
-                                    'flex items-center gap-3 px-4 py-3 rounded font-medium transition-colors',
+                                    'flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors',
                                     isActive
-                                        ? 'bg-[var(--brutal-yellow)] text-[var(--brutal-black)]'
-                                        : 'hover:bg-[var(--brutal-gray-800)] text-[var(--brutal-gray-300)]'
+                                        ? 'bg-yellow-400 text-black'
+                                        : 'hover:bg-gray-800 text-gray-300'
                                 )}
                             >
                                 <Icon className="w-5 h-5" />
@@ -131,26 +131,26 @@ export default function AdminLayout({
                 </nav>
 
                 {/* User Section */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[var(--brutal-gray-700)]">
+                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-[var(--brutal-yellow)] text-[var(--brutal-black)] rounded-full flex items-center justify-center font-black">
+                        <div className="w-10 h-10 bg-yellow-400 text-black rounded-full flex items-center justify-center font-black">
                             {user?.name?.charAt(0) || 'A'}
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="font-bold truncate">{user?.name}</p>
-                            <p className="text-xs text-[var(--brutal-gray-400)]">{user?.role}</p>
+                            <p className="text-xs text-gray-400">{user?.role}</p>
                         </div>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-[var(--brutal-red)] hover:bg-[var(--brutal-gray-800)] rounded transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-gray-800 rounded-lg transition-colors"
                     >
                         <LogOut className="w-4 h-4" />
                         Sign Out
                     </button>
                     <Link
                         href="/"
-                        className="w-full flex items-center gap-2 px-4 py-2 text-[var(--brutal-gray-400)] hover:bg-[var(--brutal-gray-800)] rounded transition-colors mt-1"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-gray-400 hover:bg-gray-800 rounded-lg transition-colors mt-1"
                     >
                         <Store className="w-4 h-4" />
                         View Store

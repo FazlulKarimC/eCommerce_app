@@ -13,6 +13,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui';
 
 interface DashboardStats {
     totalRevenue: number;
@@ -27,6 +28,11 @@ interface DashboardStats {
         status: string;
         createdAt: string;
     }>;
+    topProducts: Array<{
+        title: string;
+        sold: number;
+    }>;
+    revenueGrowth: number;
 }
 
 function useDashboardStats() {
@@ -34,16 +40,18 @@ function useDashboardStats() {
         queryKey: ['admin', 'dashboard'],
         queryFn: async () => {
             // Fetch stats from server-side aggregation endpoints
-            const [statsRes, recentOrdersRes, customersRes, productsRes] = await Promise.all([
+            const [statsRes, recentOrdersRes, customersRes, productsRes, analyticsRes] = await Promise.all([
                 api.get('/orders/stats'),           // Server-side aggregated revenue
                 api.get('/orders/admin?limit=5'),   // Only recent 5 for display
                 api.get('/customers?limit=1'),
                 api.get('/products?limit=1'),
+                api.get('/orders/analytics/dashboard').catch(() => ({ data: {} })), // New analytics
             ]);
 
             const recentOrders = recentOrdersRes.data.orders || [];
             const totalCustomers = customersRes.data.pagination?.total || 0;
             const totalProducts = productsRes.data.pagination?.total || 0;
+            const analytics = analyticsRes.data || {};
 
             return {
                 totalRevenue: statsRes.data.totalRevenue || 0,
@@ -51,18 +59,20 @@ function useDashboardStats() {
                 totalCustomers,
                 totalProducts,
                 recentOrders: recentOrders.slice(0, 5),
+                topProducts: analytics.topProducts || [],
+                revenueGrowth: analytics.revenue?.growth || 0,
             };
         },
     });
 }
 
-const statusColors: Record<string, string> = {
-    PENDING: 'bg-yellow-100 text-yellow-800',
-    CONFIRMED: 'bg-blue-100 text-blue-800',
-    PROCESSING: 'bg-blue-100 text-blue-800',
-    SHIPPED: 'bg-purple-100 text-purple-800',
-    DELIVERED: 'bg-green-100 text-green-800',
-    CANCELLED: 'bg-red-100 text-red-800',
+const statusBadgeVariant: Record<string, 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'> = {
+    PENDING: 'pending',
+    CONFIRMED: 'confirmed',
+    PROCESSING: 'processing',
+    SHIPPED: 'shipped',
+    DELIVERED: 'delivered',
+    CANCELLED: 'cancelled',
 };
 
 export default function AdminDashboard() {
@@ -73,28 +83,28 @@ export default function AdminDashboard() {
             title: 'Total Revenue',
             value: formatPrice(stats?.totalRevenue || 0),
             icon: DollarSign,
-            color: 'bg-[var(--brutal-green)]',
+            color: 'bg-green-500',
             href: '/admin/orders',
         },
         {
             title: 'Orders',
             value: stats?.totalOrders || 0,
             icon: ShoppingCart,
-            color: 'bg-[var(--brutal-blue)]',
+            color: 'bg-blue-500',
             href: '/admin/orders',
         },
         {
             title: 'Customers',
             value: stats?.totalCustomers || 0,
             icon: Users,
-            color: 'bg-[var(--brutal-purple)]',
+            color: 'bg-purple-500',
             href: '/admin/customers',
         },
         {
             title: 'Products',
             value: stats?.totalProducts || 0,
             icon: Package,
-            color: 'bg-[var(--brutal-orange)]',
+            color: 'bg-yellow-500',
             href: '/admin/products',
         },
     ];
@@ -105,15 +115,17 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black">Dashboard</h1>
-                    <p className="text-(--brutal-gray-600)">
+                    <p className="text-gray-600">
                         Welcome back! Here's what's happening today.
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <Link href="/admin/products/new" className="brutal-btn brutal-btn-primary">
-                        <Package className="w-4 h-4" />
-                        Add Product
-                    </Link>
+                    <Button asChild>
+                        <Link href="/admin/products/new">
+                            <Package className="w-4 h-4" />
+                            Add Product
+                        </Link>
+                    </Button>
                 </div>
             </div>
 
@@ -122,65 +134,65 @@ export default function AdminDashboard() {
                 {statCards.map((stat) => {
                     const Icon = stat.icon;
                     return (
-                        <Link
-                            key={stat.title}
-                            href={stat.href}
-                            className="brutal-card p-6 hover:translate-y-[-2px] transition-transform"
-                        >
-                            <div className="flex items-start justify-between">
-                                <div className={`p-3 ${stat.color} text-white`}>
-                                    <Icon className="w-6 h-6" />
-                                </div>
-                                <TrendingUp className="w-4 h-4 text-(--brutal-green)" />
-                            </div>
-                            <div className="mt-4">
-                                {isLoading ? (
-                                    <div className="h-8 w-20 bg-(--brutal-gray-200) animate-pulse" />
-                                ) : (
-                                    <p className="text-3xl font-black">{stat.value}</p>
-                                )}
-                                <p className="text-(--brutal-gray-600) text-sm mt-1">
-                                    {stat.title}
-                                </p>
-                            </div>
+                        <Link key={stat.title} href={stat.href}>
+                            <Card shadow="md" hover="liftSm" className="cursor-pointer">
+                                <CardContent className="p-6">
+                                    <div className="flex items-start justify-between">
+                                        <div className={`p-3 ${stat.color} text-white rounded-lg`}>
+                                            <Icon className="w-6 h-6" />
+                                        </div>
+                                        <TrendingUp className="w-4 h-4 text-green-500" />
+                                    </div>
+                                    <div className="mt-4">
+                                        {isLoading ? (
+                                            <div className="h-8 w-20 bg-gray-200 animate-pulse rounded" />
+                                        ) : (
+                                            <p className="text-3xl font-black">{stat.value}</p>
+                                        )}
+                                        <p className="text-gray-600 text-sm mt-1">
+                                            {stat.title}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </Link>
                     );
                 })}
             </div>
 
             {/* Recent Orders */}
-            <div className="brutal-card">
-                <div className="p-6 border-b-2 border-(--brutal-gray-200) flex items-center justify-between">
-                    <h2 className="text-xl font-black">Recent Orders</h2>
+            <Card shadow="md">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Recent Orders</CardTitle>
                     <Link
                         href="/admin/orders"
-                        className="text-sm font-bold text-(--brutal-red) hover:underline flex items-center gap-1"
+                        className="text-sm font-bold text-red-500 hover:underline flex items-center gap-1"
                     >
                         View All <ArrowRight className="w-4 h-4" />
                     </Link>
-                </div>
+                </CardHeader>
 
                 {isLoading ? (
-                    <div className="p-6">
+                    <CardContent>
                         <div className="space-y-4">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="flex gap-4 animate-pulse">
-                                    <div className="w-24 h-5 bg-(--brutal-gray-200)" />
-                                    <div className="w-48 h-5 bg-(--brutal-gray-200)" />
-                                    <div className="w-20 h-5 bg-(--brutal-gray-200)" />
+                                    <div className="w-24 h-5 bg-gray-200 rounded" />
+                                    <div className="w-48 h-5 bg-gray-200 rounded" />
+                                    <div className="w-20 h-5 bg-gray-200 rounded" />
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </CardContent>
                 ) : stats?.recentOrders.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <ShoppingCart className="w-12 h-12 mx-auto text-(--brutal-gray-300) mb-4" />
+                    <CardContent className="p-12 text-center">
+                        <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                         <p className="font-bold">No orders yet</p>
-                    </div>
+                    </CardContent>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-(--brutal-gray-100)">
+                            <thead className="bg-gray-100 border-b-4 border-black">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-wider">
                                         Order
@@ -199,13 +211,13 @@ export default function AdminDashboard() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-(--brutal-gray-200)">
+                            <tbody className="divide-y-4 divide-black">
                                 {stats?.recentOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-(--brutal-gray-50)">
+                                    <tr key={order.id} className="hover:bg-yellow-50">
                                         <td className="px-6 py-4">
                                             <Link
                                                 href={`/admin/orders/${order.id}`}
-                                                className="font-bold hover:text-(--brutal-red)"
+                                                className="font-bold hover:text-red-500"
                                             >
                                                 #{order.orderNumber}
                                             </Link>
@@ -213,11 +225,11 @@ export default function AdminDashboard() {
                                         <td className="px-6 py-4 text-sm">{order.email}</td>
                                         <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 text-xs font-bold rounded ${statusColors[order.status] || 'bg-gray-100'}`}>
+                                            <Badge variant={statusBadgeVariant[order.status] || 'pending'} size="sm">
                                                 {order.status}
-                                            </span>
+                                            </Badge>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-(--brutal-gray-600)">
+                                        <td className="px-6 py-4 text-sm text-gray-600">
                                             <div className="flex items-center gap-1">
                                                 <Clock className="w-3 h-3" />
                                                 {new Date(order.createdAt).toLocaleDateString()}
@@ -229,32 +241,44 @@ export default function AdminDashboard() {
                         </table>
                     </div>
                 )}
-            </div>
+            </Card>
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Link href="/admin/products/new" className="brutal-card p-6 hover:bg-(--brutal-gray-50) transition-colors group">
-                    <Package className="w-8 h-8 text-(--brutal-orange) mb-4" />
-                    <h3 className="font-black group-hover:text-(--brutal-red)">Add Product</h3>
-                    <p className="text-sm text-(--brutal-gray-600) mt-1">
-                        Create a new product listing
-                    </p>
+                <Link href="/admin/products/new">
+                    <Card shadow="md" hover="liftSm" className="cursor-pointer group">
+                        <CardContent className="p-6">
+                            <Package className="w-8 h-8 text-yellow-500 mb-4" />
+                            <h3 className="font-black group-hover:text-red-500">Add Product</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Create a new product listing
+                            </p>
+                        </CardContent>
+                    </Card>
                 </Link>
 
-                <Link href="/admin/discounts/new" className="brutal-card p-6 hover:bg-(--brutal-gray-50) transition-colors group">
-                    <DollarSign className="w-8 h-8 text-(--brutal-green) mb-4" />
-                    <h3 className="font-black group-hover:text-(--brutal-red)">Create Discount</h3>
-                    <p className="text-sm text-(--brutal-gray-600) mt-1">
-                        Set up a new discount code
-                    </p>
+                <Link href="/admin/discounts/new">
+                    <Card shadow="md" hover="liftSm" className="cursor-pointer group">
+                        <CardContent className="p-6">
+                            <DollarSign className="w-8 h-8 text-green-500 mb-4" />
+                            <h3 className="font-black group-hover:text-red-500">Create Discount</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Set up a new discount code
+                            </p>
+                        </CardContent>
+                    </Card>
                 </Link>
 
-                <Link href="/admin/orders" className="brutal-card p-6 hover:bg-(--brutal-gray-50) transition-colors group">
-                    <ShoppingCart className="w-8 h-8 text-(--brutal-blue) mb-4" />
-                    <h3 className="font-black group-hover:text-(--brutal-red)">Manage Orders</h3>
-                    <p className="text-sm text-(--brutal-gray-600) mt-1">
-                        View and update order statuses
-                    </p>
+                <Link href="/admin/orders">
+                    <Card shadow="md" hover="liftSm" className="cursor-pointer group">
+                        <CardContent className="p-6">
+                            <ShoppingCart className="w-8 h-8 text-blue-500 mb-4" />
+                            <h3 className="font-black group-hover:text-red-500">Manage Orders</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                                View and update order statuses
+                            </p>
+                        </CardContent>
+                    </Card>
                 </Link>
             </div>
         </div>

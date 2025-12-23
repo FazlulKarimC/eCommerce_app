@@ -12,6 +12,7 @@ import wishlistRouter from './wishlist';
 import discountsRouter from './discounts';
 import contactRouter from './contact';
 import newsletterRouter from './newsletter';
+import addressesRouter from './addresses';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.use('/wishlist', wishlistRouter);
 router.use('/discounts', discountsRouter);
 router.use('/contact', contactRouter);
 router.use('/newsletter', newsletterRouter);
+router.use('/addresses', addressesRouter);
 
 // Health check
 router.get('/health', (req, res) => {

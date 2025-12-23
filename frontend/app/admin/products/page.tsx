@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import { formatPrice, cn } from '@/lib/utils';
+import { Card, CardContent, Button, Badge, Input } from '@/components/ui';
 
 interface AdminProduct {
     id: string;
@@ -28,10 +29,10 @@ interface AdminProduct {
     _count?: { reviews: number };
 }
 
-const statusColors: Record<string, string> = {
-    ACTIVE: 'brutal-badge-green',
-    DRAFT: 'brutal-badge-yellow',
-    ARCHIVED: 'brutal-badge-red',
+const statusBadgeVariant: Record<string, 'success' | 'warning' | 'error'> = {
+    ACTIVE: 'success',
+    DRAFT: 'warning',
+    ARCHIVED: 'error',
 };
 
 export default function AdminProductsPage() {
@@ -78,66 +79,70 @@ export default function AdminProductsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black">Products</h1>
-                    <p className="text-(--brutal-gray-600)">
+                    <p className="text-gray-600">
                         {pagination.total} products total
                     </p>
                 </div>
-                <Link href="/admin/products/new" className="brutal-btn brutal-btn-primary">
-                    <Plus className="w-4 h-4" />
-                    Add Product
-                </Link>
+                <Button asChild>
+                    <Link href="/admin/products/new">
+                        <Plus className="w-4 h-4" />
+                        Add Product
+                    </Link>
+                </Button>
             </div>
 
             {/* Filters */}
-            <div className="brutal-card p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--brutal-gray-400)" />
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            value={search}
+            <Card shadow="md">
+                <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <Input
+                                type="text"
+                                placeholder="Search products..."
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="pl-12"
+                            />
+                        </div>
+                        <select
+                            value={status}
                             onChange={(e) => {
-                                setSearch(e.target.value);
+                                setStatus(e.target.value);
                                 setPage(1);
                             }}
-                            className="brutal-input pl-10"
-                        />
+                            className="w-full sm:w-40 h-12 px-4 bg-white border-4 border-black rounded-xl font-medium focus:outline-none shadow-[4px_4px_0px_#000]"
+                        >
+                            <option value="">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="DRAFT">Draft</option>
+                            <option value="ARCHIVED">Archived</option>
+                        </select>
                     </div>
-                    <select
-                        value={status}
-                        onChange={(e) => {
-                            setStatus(e.target.value);
-                            setPage(1);
-                        }}
-                        className="brutal-input w-full sm:w-40"
-                    >
-                        <option value="">All Status</option>
-                        <option value="ACTIVE">Active</option>
-                        <option value="DRAFT">Draft</option>
-                        <option value="ARCHIVED">Archived</option>
-                    </select>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Products Table */}
-            <div className="brutal-card overflow-hidden">
+            <Card shadow="md">
                 {isLoading ? (
-                    <div className="p-12 text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-(--brutal-gray-400)" />
-                    </div>
+                    <CardContent className="p-12 text-center">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+                    </CardContent>
                 ) : products.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <Package className="w-12 h-12 mx-auto text-(--brutal-gray-300) mb-4" />
+                    <CardContent className="p-12 text-center">
+                        <Package className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                         <h3 className="font-black">No products found</h3>
-                        <p className="text-(--brutal-gray-600) mt-1">
+                        <p className="text-gray-600 mt-1">
                             {search || status ? 'Try adjusting your filters' : 'Add your first product'}
                         </p>
-                    </div>
+                    </CardContent>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-(--brutal-gray-100) border-b-2 border-(--brutal-black)">
+                            <thead className="bg-gray-100 border-b-4 border-black">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-black uppercase">
                                         Product
@@ -156,7 +161,7 @@ export default function AdminProductsPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-(--brutal-gray-200)">
+                            <tbody className="divide-y-4 divide-black">
                                 {products.map((product) => {
                                     const variant = product.variants[0];
                                     const image = product.images[0];
@@ -166,10 +171,10 @@ export default function AdminProductsPage() {
                                     );
 
                                     return (
-                                        <tr key={product.id} className="hover:bg-(--brutal-gray-50)">
+                                        <tr key={product.id} className="hover:bg-yellow-50">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-(--brutal-gray-100) border-2 border-(--brutal-black) shrink-0 relative overflow-hidden">
+                                                    <div className="w-12 h-12 bg-gray-100 border-2 border-black shrink-0 relative overflow-hidden rounded-lg">
                                                         {image ? (
                                                             <Image
                                                                 src={image.url}
@@ -179,19 +184,19 @@ export default function AdminProductsPage() {
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center">
-                                                                <Package className="w-5 h-5 text-(--brutal-gray-300)" />
+                                                                <Package className="w-5 h-5 text-gray-300" />
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div>
                                                         <Link
                                                             href={`/admin/products/${product.id}`}
-                                                            className="font-bold hover:text-(--brutal-red)"
+                                                            className="font-bold hover:text-red-500"
                                                         >
                                                             {product.title}
                                                         </Link>
                                                         {product.featured && (
-                                                            <span className="ml-2 text-xs text-(--brutal-yellow) font-bold">
+                                                            <span className="ml-2 text-xs text-yellow-600 font-bold">
                                                                 ★ Featured
                                                             </span>
                                                         )}
@@ -199,9 +204,9 @@ export default function AdminProductsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={cn('brutal-badge text-xs', statusColors[product.status])}>
-                                                    {product.status}
-                                                </span>
+                                                <Badge variant={statusBadgeVariant[product.status] ?? 'pending'} size="sm">
+                                                    {product.status ?? 'PENDING'}
+                                                </Badge>
                                             </td>
                                             <td className="px-6 py-4 font-bold">
                                                 {variant ? formatPrice(variant.price) : '-'}
@@ -209,8 +214,8 @@ export default function AdminProductsPage() {
                                             <td className="px-6 py-4">
                                                 <span className={cn(
                                                     'font-bold',
-                                                    totalInventory <= 0 && 'text-(--brutal-red)',
-                                                    totalInventory > 0 && totalInventory <= 10 && 'text-(--brutal-orange)'
+                                                    totalInventory <= 0 && 'text-red-500',
+                                                    totalInventory > 0 && totalInventory <= 10 && 'text-yellow-600'
                                                 )}>
                                                     {totalInventory}
                                                 </span>
@@ -219,7 +224,7 @@ export default function AdminProductsPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
                                                         href={`/admin/products/${product.id}`}
-                                                        className="p-2 hover:bg-(--brutal-gray-100) rounded"
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -227,7 +232,7 @@ export default function AdminProductsPage() {
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.title)}
                                                         disabled={deleteProduct.isPending}
-                                                        className="p-2 hover:bg-(--brutal-red) hover:text-white rounded transition-colors"
+                                                        className="p-2 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -244,29 +249,31 @@ export default function AdminProductsPage() {
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                    <div className="p-4 border-t-2 border-(--brutal-gray-200) flex items-center justify-between">
-                        <p className="text-sm text-(--brutal-gray-600)">
+                    <div className="p-4 border-t-4 border-black flex items-center justify-between">
+                        <p className="text-sm text-gray-600">
                             Page {pagination.page} of {pagination.totalPages}
                         </p>
                         <div className="flex gap-2">
-                            <button
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setPage(page - 1)}
                                 disabled={page <= 1}
-                                className="brutal-btn text-sm disabled:opacity-50"
                             >
                                 <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setPage(page + 1)}
                                 disabled={page >= pagination.totalPages}
-                                className="brutal-btn text-sm disabled:opacity-50"
                             >
                                 <ChevronRight className="w-4 h-4" />
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

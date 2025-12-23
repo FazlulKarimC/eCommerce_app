@@ -73,6 +73,97 @@ router.get(
   }
 );
 
+// Get analytics data (admin/staff) - MUST be before /:id route
+router.get(
+  '/analytics/dashboard',
+  authenticate,
+  requireStaff,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { prisma } = await import('../config/database');
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      const [
+        currentMonthRevenue,
+        lastMonthRevenue,
+        totalOrders,
+        pendingOrders,
+        totalCustomers,
+        topProducts,
+        recentOrders,
+      ] = await Promise.all([
+        prisma.order.aggregate({
+          where: {
+            createdAt: { gte: startOfMonth },
+            status: { notIn: ['CANCELLED', 'REFUNDED'] },
+          },
+          _sum: { total: true },
+        }),
+        prisma.order.aggregate({
+          where: {
+            createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            status: { notIn: ['CANCELLED', 'REFUNDED'] },
+          },
+          _sum: { total: true },
+        }),
+        prisma.order.count(),
+        prisma.order.count({ where: { status: 'PENDING' } }),
+        prisma.customer.count(),
+        prisma.orderItem.groupBy({
+          by: ['productTitle'],
+          _sum: { quantity: true },
+          orderBy: { _sum: { quantity: 'desc' } },
+          take: 5,
+        }),
+        prisma.order.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+            total: true,
+            createdAt: true,
+            email: true,
+          },
+        }),
+      ]);
+
+      const currentRevenue = Number(currentMonthRevenue._sum.total || 0);
+      const lastRevenue = Number(lastMonthRevenue._sum.total || 0);
+      const revenueGrowth = lastRevenue > 0
+        ? ((currentRevenue - lastRevenue) / lastRevenue) * 100
+        : 0;
+
+      res.json({
+        revenue: {
+          currentMonth: currentRevenue,
+          lastMonth: lastRevenue,
+          growth: Math.round(revenueGrowth * 10) / 10,
+        },
+        orders: {
+          total: totalOrders,
+          pending: pendingOrders,
+        },
+        customers: {
+          total: totalCustomers,
+        },
+        topProducts: topProducts.map(p => ({
+          title: p.productTitle,
+          sold: p._sum.quantity || 0,
+        })),
+        recentOrders,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // Get single order (authenticated - must be own order or admin)
 router.get(
   '/:id',
@@ -226,4 +317,75 @@ router.post(
   }
 );
 
+// Process refund (admin/staff)
+const refundSchema = z.object({
+  reason: z.string().optional(),
+});
+
+router.post(
+  '/:id/refund',
+  authenticate,
+  requireStaff,
+  validateParams(idParamSchema),
+  validateBody(refundSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.findById(req.params.id);
+
+      // Check if order can be refunded
+      if (order.financialStatus === 'refunded') {
+        res.status(400).json({ error: 'Order already refunded' });
+        return;
+      }
+
+      // Process mock refund atomically using transaction
+      const { prisma } = await import('../config/database');
+
+      // Build notes - append refund reason to existing notes
+      const newNotes = req.body.reason
+        ? `${order.notes ? order.notes + '\n' : ''}Refund reason: ${req.body.reason}`
+        : order.notes;
+
+      // Use transaction to ensure both operations succeed or fail together
+      const updatedOrder = await prisma.$transaction(async (tx) => {
+        // Create refund payment record
+        await tx.payment.create({
+          data: {
+            orderId: order.id,
+            amount: order.total,
+            status: 'REFUNDED',
+            provider: 'mock',
+            transactionId: `REFUND-${Date.now()}`,
+          },
+        });
+
+        // Update order status
+        return tx.order.update({
+          where: { id: req.params.id },
+          data: {
+            status: 'REFUNDED',
+            financialStatus: 'refunded',
+            notes: newNotes,
+          },
+          include: {
+            items: true,
+            payments: true,
+            fulfillments: true,
+            shippingAddress: true,
+          },
+        });
+      });
+
+      res.json(updatedOrder);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Order not found') {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+      next(error);
+    }
+  }
+);
+
 export default router;
+
