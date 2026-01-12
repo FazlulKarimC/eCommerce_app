@@ -83,6 +83,9 @@ backend/coverage/
 # Misc
 # ================================
 
+# Interview preparation (private)
+INTERVIEW_PROJECT_QA.md
+
 # Debug files
 *.pem
 

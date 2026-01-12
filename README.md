@@ -202,9 +202,9 @@ npm run dev
 
 | Role | Email | Password |
 |------|-------|----------|
-| **👑 Admin** | admin@brutaliststore.com | Admin123! |
-| **👤 Staff** | staff@brutaliststore.com | Staff123! |
-| **🛒 Customer** | customer@example.com | Customer123! |
+| **👑 Admin** | admin@brutal.com | Admin123! |
+| **👤 Staff** | staff@brutal.com | Staff123! |
+| **🛒 Customer** | customer@brutal.com | Customer123! |
 
 ---
 
